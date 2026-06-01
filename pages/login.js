@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { authAPI } from '../lib/api';
 
 export default function LoginPage() {
@@ -47,6 +48,9 @@ export default function LoginPage() {
           <button style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }} disabled={loading}>
             {loading ? '登入中...' : '登入'}
           </button>
+          <p style={styles.footer}>
+            還沒有帳號？<Link href="/register" style={styles.footerLink}>註冊新帳號</Link>
+          </p>
         </form>
       </div>
     </div>
@@ -65,4 +69,6 @@ const styles = {
   input: { width: '100%', padding: '11px 14px', border: '1px solid #dee2e6', borderRadius: 6, fontSize: 15, boxSizing: 'border-box', outline: 'none' },
   error: { color: '#c0392b', fontSize: 13, textAlign: 'center', marginBottom: 12 },
   btn: { width: '100%', padding: 13, background: '#1a6fdb', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: 'pointer' },
+  footer: { textAlign: 'center', fontSize: 13, color: '#6c757d', marginTop: 18 },
+  footerLink: { color: '#1a6fdb', textDecoration: 'none', fontWeight: 500 },
 };

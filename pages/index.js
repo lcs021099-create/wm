@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { quotesAPI } from '../lib/api';
+import { quotesAPI, usersAPI } from '../lib/api';
 import Link from 'next/link';
 
 const statusMap = {
@@ -16,11 +16,35 @@ const fmt = (n) => 'HK$' + Math.round(Number(n) || 0).toLocaleString();
 export default function Home() {
   const [stats, setStats] = useState(null);
   const [recent, setRecent] = useState([]);
+  const [user, setUser] = useState(null);
+  const [pending, setPending] = useState([]);
+  const [actingId, setActingId] = useState(null);
+
+  const loadPending = () => usersAPI.pending().then(r => setPending(r.data)).catch(() => {});
 
   useEffect(() => {
+    const u = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    const parsed = u ? JSON.parse(u) : null;
+    setUser(parsed);
     quotesAPI.stats().then(r => setStats(r.data)).catch(() => {});
     quotesAPI.list({ limit: 5 }).then(r => setRecent(r.data.data)).catch(() => {});
+    if (parsed?.role === 'admin') loadPending();
   }, []);
+
+  const approve = async (id) => {
+    setActingId(id);
+    try { await usersAPI.approve(id); await loadPending(); }
+    catch (err) { alert(err.response?.data?.error || '批准失敗'); }
+    finally { setActingId(null); }
+  };
+
+  const reject = async (id) => {
+    if (!confirm('確定要拒絕此註冊申請？')) return;
+    setActingId(id);
+    try { await usersAPI.reject(id); await loadPending(); }
+    catch (err) { alert(err.response?.data?.error || '拒絕失敗'); }
+    finally { setActingId(null); }
+  };
 
   const statCards = [
     { label: '本月報價', value: stats?.total ?? '-', sub: '份', color: '#1a6fdb', bg: '#e8f1fc' },
@@ -32,6 +56,32 @@ export default function Home() {
   return (
     <Layout>
       <p style={styles.pageTitle}>📊 首頁總覽</p>
+
+      {user?.role === 'admin' && pending.length > 0 && (
+        <div style={{ ...styles.card, borderLeft: '3px solid #d4851a', background: '#fffdf7' }}>
+          <div style={styles.cardHeader}>
+            <span style={styles.cardTitle}>🔔 待批准用戶（{pending.length}）</span>
+          </div>
+          {pending.map(u => (
+            <div key={u.id} style={styles.pendingItem}>
+              <div style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
+                <div style={styles.quoteClient}>
+                  {u.name} <span style={{ fontSize: 12, color: '#6c757d' }}>({u.username})</span>
+                </div>
+                <div style={styles.quoteDate}>申請時間：{u.created_at?.slice(0, 10) || '—'}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => approve(u.id)} disabled={actingId === u.id} style={styles.approveBtn}>
+                  {actingId === u.id ? '…' : '批准'}
+                </button>
+                <button onClick={() => reject(u.id)} disabled={actingId === u.id} style={styles.rejectBtn}>
+                  拒絕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={styles.statsGrid}>
         {statCards.map((s, i) => (
@@ -97,5 +147,8 @@ const styles = {
   quoteAmount: { fontSize: 14, fontWeight: 600 },
   badge: { display: 'inline-block', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 500, marginTop: 3 },
   empty: { textAlign: 'center', padding: '30px 0', color: '#6c757d', fontSize: 14 },
+  pendingItem: { display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '0.5px solid #f0e6cf' },
+  approveBtn: { padding: '6px 14px', border: 'none', borderRadius: 6, background: '#2d8a4e', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer' },
+  rejectBtn: { padding: '6px 14px', border: '1px solid #dee2e6', borderRadius: 6, background: '#fff', color: '#c0392b', fontSize: 13, fontWeight: 500, cursor: 'pointer' },
   actionBtn: { textAlign: 'center', padding: '12px 0', borderRadius: 8, fontWeight: 500, fontSize: 14, textDecoration: 'none', display: 'block' },
 };

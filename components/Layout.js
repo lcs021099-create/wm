@@ -39,8 +39,7 @@ export default function Layout({ children }) {
       {/* 頂部 */}
       <div style={styles.topbar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 20 }}>📋</span>
-          <span style={{ fontSize: 16, fontWeight: 700, color: '#1a6fdb' }}>報價系統</span>
+          <img src="/logo.png" alt="Logo" style={{ height: 40, width: 'auto', display: 'block' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={styles.avatar}>{user.name?.[0] || 'U'}</div>

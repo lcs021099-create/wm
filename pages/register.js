@@ -28,7 +28,7 @@ export default function RegisterPage() {
     <div style={styles.bg}>
       <div style={styles.card}>
         <div style={styles.logo}>
-          <div style={styles.logoIcon}>📋</div>
+          <img src="/logo.png" alt="Logo" style={{ width: 80, height: 80, objectFit: 'contain', display: 'block', margin: '0 auto 10px' }} />
           <h1 style={styles.title}>註冊新帳號</h1>
           <p style={styles.sub}>建立帳號後需等待管理員批准</p>
         </div>

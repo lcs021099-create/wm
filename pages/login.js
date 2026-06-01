@@ -29,9 +29,8 @@ export default function LoginPage() {
     <div style={styles.bg}>
       <div style={styles.card}>
         <div style={styles.logo}>
-          <img src="/logo.png" alt="Logo" style={{ width: 80, height: 80, objectFit: 'contain', display: 'block', margin: '0 auto 10px' }} />
+          <img src="/logo.png" alt="Logo" style={{ width: 104, height: 104, objectFit: 'contain', display: 'block', margin: '0 auto 10px' }} />
           <h1 style={styles.title}>報價管理系統</h1>
-          <p style={styles.sub}>請登入以繼續使用</p>
         </div>
         <form onSubmit={handleLogin}>
           <div style={styles.group}>

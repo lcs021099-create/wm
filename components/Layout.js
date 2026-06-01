@@ -35,7 +35,7 @@ export default function Layout({ children }) {
   if (!user) return null;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f9fa', paddingBottom: 64 }}>
+    <div style={{ minHeight: '100vh', background: '#f8f9fa', paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
       {/* 頂部 */}
       <div style={styles.topbar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -65,10 +65,10 @@ export default function Layout({ children }) {
 }
 
 const styles = {
-  topbar: { background: '#fff', borderBottom: '0.5px solid #dee2e6', padding: '0 16px', height: 54, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 },
+  topbar: { background: '#fff', borderBottom: '0.5px solid #dee2e6', padding: '0 16px', minHeight: 54, paddingTop: 'env(safe-area-inset-top)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 },
   avatar: { width: 30, height: 30, borderRadius: '50%', background: '#1a6fdb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600 },
   logoutBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 6 },
   content: { maxWidth: 800, margin: '0 auto', padding: 16 },
-  bottomnav: { background: '#fff', borderTop: '0.5px solid #dee2e6', display: 'flex', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100 },
+  bottomnav: { background: '#fff', borderTop: '0.5px solid #dee2e6', display: 'flex', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100, paddingBottom: 'env(safe-area-inset-bottom)' },
   navItem: { flex: 1, padding: '10px 4px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 },
 };

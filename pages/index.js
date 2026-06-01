@@ -179,7 +179,7 @@ export default function Home() {
 
   const navLink = (id, icon, label) => (
     <a className={`nav-link${section === id ? ' active' : ''}`} onClick={() => setSection(id)} role="button" tabIndex={0}>
-      <span className="nav-icon">{icon}</span>{label}
+      <span className="nav-icon">{icon}</span><span className="nav-label">{label}</span>
     </a>
   );
   const bnItem = (id, icon, label) => (
@@ -193,8 +193,18 @@ export default function Home() {
       {/* Desktop Sidebar */}
       <div className="sidebar">
         <div className="sb-head">
-          <h2>📊 報價系統</h2>
-          <p>用戶: {user.name || user.username}</p>
+          <div className="sb-logo">📊</div>
+          <div>
+            <h2>報價系統</h2>
+            <p className="sb-sub">Quotation System</p>
+          </div>
+        </div>
+        <div className="sb-user">
+          <div className="sb-avatar">{(user.name || user.username || 'U')[0]}</div>
+          <div>
+            <div className="sb-uname">{user.name || user.username}</div>
+            <div className="sb-role">{user.role === 'admin' ? '管理員' : '業務員'}</div>
+          </div>
         </div>
         <ul className="nav-list">
           <li>{navLink('dashboard', '🏠', '儀表板')}</li>
@@ -388,27 +398,62 @@ export default function Home() {
       <style jsx>{`
         .app { display: flex; min-height: 100vh; background: #f0f2f5; }
         .sidebar {
-          width: 220px; flex-shrink: 0; background: #fff;
-          box-shadow: 2px 0 10px rgba(0,0,0,.08);
+          width: 248px; flex-shrink: 0; background: #fff;
+          border-right: 1px solid #eef0f4;
+          box-shadow: 2px 0 18px rgba(0,0,0,.04);
           display: flex; flex-direction: column;
           position: fixed; left: 0; top: 0; height: 100vh; z-index: 200; overflow-y: auto;
+          padding: 18px 14px;
         }
-        .sb-head { padding: 22px 18px 18px; border-bottom: 1px solid #f0f0f0; }
-        .sb-head h2 { font-size: 17px; color: #667eea; margin-bottom: 2px; }
-        .sb-head p { font-size: 11px; color: #aaa; }
-        .nav-list { list-style: none; flex: 1; padding-top: 8px; margin: 0; }
-        .nav-link {
-          display: flex; align-items: center; gap: 10px; padding: 13px 18px;
-          color: #777; text-decoration: none; font-size: 14px; cursor: pointer;
-          border-left: 3px solid transparent; transition: .15s;
+        .sb-head { display: flex; align-items: center; gap: 12px; padding: 6px 6px 18px; }
+        .sb-logo {
+          width: 44px; height: 44px; border-radius: 13px;
+          background: linear-gradient(135deg,#667eea,#764ba2);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 23px; box-shadow: 0 8px 18px rgba(102,126,234,.4); flex-shrink: 0;
         }
-        .nav-link:active, .nav-link:hover { background: #f5f7ff; color: #667eea; }
-        .nav-link.active { background: #eef1ff; color: #667eea; border-left-color: #667eea; font-weight: 600; }
-        .nav-icon { font-size: 18px; line-height: 1; }
-        .logout-btn { margin: 16px; padding: 11px; background: #f5f5f5; color: #888; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; transition: .2s; }
-        .logout-btn:hover { background: #ffebee; color: #e53935; }
+        .sb-head h2 { font-size: 17px; color: #2d2f48; margin: 0; line-height: 1.2; font-weight: 700; }
+        .sb-sub { font-size: 9.5px; color: #b3b6c4; letter-spacing: 1px; margin: 3px 0 0; text-transform: uppercase; }
 
-        .main { margin-left: 220px; flex: 1; padding: 24px; overflow-y: auto; min-height: 100vh; }
+        .sb-user {
+          display: flex; align-items: center; gap: 11px;
+          background: #f6f7fb; border-radius: 13px; padding: 11px 12px; margin-bottom: 16px;
+        }
+        .sb-avatar {
+          width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+          background: linear-gradient(135deg,#667eea,#764ba2); color: #fff;
+          display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;
+          box-shadow: 0 4px 12px rgba(102,126,234,.3);
+        }
+        .sb-uname { font-size: 13.5px; font-weight: 600; color: #333; }
+        .sb-role { font-size: 11px; color: #9aa0b4; margin-top: 1px; }
+
+        .nav-list { list-style: none; flex: 1; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+        .nav-link {
+          display: flex; align-items: center; gap: 12px; padding: 9px 11px;
+          color: #6b6f80; text-decoration: none; font-size: 14px; cursor: pointer;
+          border-radius: 12px; transition: all .18s ease; font-weight: 500;
+        }
+        .nav-link:hover { background: #f2f3fb; color: #667eea; }
+        .nav-link.active {
+          background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; font-weight: 600;
+          box-shadow: 0 8px 18px rgba(102,126,234,.38);
+        }
+        .nav-icon {
+          width: 32px; height: 32px; border-radius: 10px; background: #f0f1f8;
+          display: flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1;
+          transition: background .18s; flex-shrink: 0;
+        }
+        .nav-link.active .nav-icon { background: rgba(255,255,255,.22); }
+        .nav-label { line-height: 1; }
+        .logout-btn {
+          margin-top: 8px; padding: 12px; background: #f6f7fb; color: #8a8fa3;
+          border: none; border-radius: 12px; cursor: pointer; font-size: 13.5px; font-weight: 600;
+          transition: .2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .logout-btn:hover { background: #ffece8; color: #e53935; }
+
+        .main { margin-left: 248px; flex: 1; padding: 24px; overflow-y: auto; min-height: 100vh; }
 
         .bottom-nav { display: none; }
 
@@ -511,8 +556,8 @@ export default function Home() {
         .bn-item.active .bn-label { font-weight: 700; }
 
         @media (min-width: 681px) and (max-width: 1024px) {
-          .sidebar { width: 180px; }
-          .main { margin-left: 180px; padding: 20px; }
+          .sidebar { width: 212px; }
+          .main { margin-left: 212px; padding: 20px; }
         }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

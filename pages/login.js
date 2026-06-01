@@ -57,7 +57,7 @@ export default function LoginPage() {
 }
 
 const styles = {
-  bg: { minHeight: '100vh', background: 'linear-gradient(135deg,#ffffff 0%,#fbfcfd 35%,#bfc5cd 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  bg: { height: '100dvh', minHeight: '100dvh', background: 'linear-gradient(135deg,#ffffff 0%,#fbfcfd 35%,#bfc5cd 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'hidden' },
   card: { background: '#fff', borderRadius: 16, padding: '40px 36px', width: '100%', maxWidth: 400, boxShadow: '0 10px 40px rgba(0,0,0,0.12)' },
   logo: { textAlign: 'center', marginBottom: 28 },
   logoIcon: { fontSize: 40, marginBottom: 10 },

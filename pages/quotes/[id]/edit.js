@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import QuoteForm from './new';
-import { quotesAPI } from '../../lib/api';
-import Layout from '../../components/Layout';
+import QuoteForm from '../new';
+import { quotesAPI } from '../../../lib/api';
+import Layout from '../../../components/Layout';
 
 export default function EditQuote() {
   const router = useRouter();

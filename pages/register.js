@@ -81,8 +81,8 @@ export default function RegisterPage() {
 }
 
 const styles = {
-  bg: { minHeight: '100vh', background: 'linear-gradient(135deg,#ffffff 0%,#fbfcfd 35%,#bfc5cd 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  card: { background: '#fff', borderRadius: 16, padding: '40px 36px', width: '100%', maxWidth: 400, boxShadow: '0 10px 40px rgba(0,0,0,0.12)' },
+  bg: { minHeight: '100dvh', background: 'linear-gradient(135deg,#ffffff 0%,#fbfcfd 35%,#bfc5cd 100%)', display: 'flex', padding: 20, overflowY: 'auto' },
+  card: { background: '#fff', borderRadius: 16, padding: '40px 36px', width: '100%', maxWidth: 400, boxShadow: '0 10px 40px rgba(0,0,0,0.12)', margin: 'auto' },
   logo: { textAlign: 'center', marginBottom: 28 },
   logoIcon: { fontSize: 40, marginBottom: 10 },
   title: { fontSize: 22, fontWeight: 700, color: '#212529', margin: 0 },

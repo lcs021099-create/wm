@@ -177,11 +177,16 @@ export default function Home() {
     </>
   );
 
-  const navLink = (id, icon, label) => (
-    <a className={`nav-link${section === id ? ' active' : ''}`} onClick={() => setSection(id)} role="button" tabIndex={0}>
-      <span className="nav-icon">{icon}</span><span className="nav-label">{label}</span>
-    </a>
-  );
+  const navLink = (id, icon, label) => {
+    const isActive = section === id;
+    return (
+      <button type="button" className={`menu-btn${isActive ? ' is-on' : ''}`} onClick={() => setSection(id)}>
+        <span className="mb-icon">{icon}</span>
+        <span className="mb-text">{label}</span>
+        {isActive && <span className="mb-dot" />}
+      </button>
+    );
+  };
   const bnItem = (id, icon, label) => (
     <button className={`bn-item${section === id ? ' active' : ''}`} onClick={() => setSection(id)}>
       <span className="bn-icon">{icon}</span><span className="bn-label">{label}</span>
@@ -206,11 +211,12 @@ export default function Home() {
             <div className="sb-role">{user.role === 'admin' ? '管理員' : '業務員'}</div>
           </div>
         </div>
-        <ul className="nav-list">
-          <li>{navLink('dashboard', '🏠', '儀表板')}</li>
-          <li>{navLink('quotation', '✍️', '生成報價')}</li>
-          <li>{navLink('records', '📋', '報價紀錄')}</li>
-        </ul>
+        <div className="menu-group">
+          <div className="menu-label">主選單</div>
+          {navLink('dashboard', '🏠', '儀表板')}
+          {navLink('quotation', '✍️', '生成報價')}
+          {navLink('records', '📋', '報價紀錄')}
+        </div>
         <button className="logout-btn" onClick={doLogout}>🚪 登出</button>
       </div>
 
@@ -428,37 +434,56 @@ export default function Home() {
         .sb-uname { font-size: 13.5px; font-weight: 600; color: #333; }
         .sb-role { font-size: 11px; color: #9aa0b4; margin-top: 1px; }
 
-        .nav-list { list-style: none; flex: 1; margin: 0; padding: 4px 0; display: flex; flex-direction: column; gap: 4px; }
-        .nav-link {
-          position: relative; display: flex; align-items: center; gap: 14px;
-          padding: 12px 16px; color: #5b6275; text-decoration: none; font-size: 14.5px;
-          cursor: pointer; border-radius: 12px; font-weight: 500; letter-spacing: .2px;
-          transition: background .2s ease, color .2s ease, transform .12s ease, box-shadow .2s ease;
-          overflow: hidden;
+        .menu-group { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+        .menu-label {
+          font-size: 10.5px; font-weight: 700; color: #b0b3c5;
+          text-transform: uppercase; letter-spacing: 1.5px;
+          padding: 6px 14px 10px;
         }
-        .nav-link::before {
-          content: ''; position: absolute; left: 0; top: 50%;
-          width: 3px; height: 0; background: #667eea; border-radius: 0 3px 3px 0;
-          transform: translateY(-50%); transition: height .25s cubic-bezier(.4,0,.2,1);
+        .menu-btn {
+          position: relative;
+          display: flex; align-items: center; gap: 14px;
+          width: 100%; padding: 12px 16px;
+          background: transparent; border: none; outline: none;
+          color: #4a5060; font-size: 14.5px; font-weight: 600;
+          font-family: inherit; text-align: left;
+          letter-spacing: .3px; cursor: pointer;
+          border-radius: 12px;
+          transition: background .22s ease, color .22s ease, transform .12s ease, box-shadow .25s ease;
         }
-        .nav-link:hover {
-          background: rgba(102,126,234,.07);
+        .menu-btn::before {
+          content: ''; position: absolute; left: -14px; top: 50%;
+          width: 4px; height: 0; background: #667eea;
+          border-radius: 0 4px 4px 0; transform: translateY(-50%);
+          transition: height .28s cubic-bezier(.4,0,.2,1);
+        }
+        .menu-btn:hover {
+          background: linear-gradient(90deg, rgba(102,126,234,.10), rgba(102,126,234,.04));
           color: #4f59d4;
         }
-        .nav-link:hover::before { height: 18px; }
-        .nav-link:hover .nav-icon { transform: scale(1.1); }
-        .nav-link:active { transform: scale(.98); }
-        .nav-link.active {
-          background: linear-gradient(135deg,#7a8eee 0%,#8d6bd1 100%);
-          color: #fff; font-weight: 600;
-          box-shadow: 0 10px 24px -6px rgba(102,126,234,.55), inset 0 1px 0 rgba(255,255,255,.18);
+        .menu-btn:hover::before { height: 20px; }
+        .menu-btn:hover .mb-icon { transform: scale(1.15) rotate(-3deg); }
+        .menu-btn:active { transform: scale(.97); }
+        .menu-btn.is-on {
+          background: linear-gradient(135deg, #6e7ff3 0%, #9168d5 100%);
+          color: #fff;
+          box-shadow:
+            0 12px 28px -8px rgba(102,126,234,.6),
+            0 4px 10px -2px rgba(145,104,213,.35),
+            inset 0 1px 0 rgba(255,255,255,.25);
         }
-        .nav-link.active::before { display: none; }
-        .nav-icon {
-          font-size: 19px; line-height: 1; width: 22px; text-align: center;
-          flex-shrink: 0; transition: transform .2s ease; filter: drop-shadow(0 1px 1px rgba(0,0,0,.06));
+        .menu-btn.is-on::before { display: none; }
+        .menu-btn.is-on .mb-icon { transform: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.18)); }
+        .mb-icon {
+          font-size: 20px; line-height: 1; width: 24px; text-align: center;
+          flex-shrink: 0; transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+          filter: drop-shadow(0 1px 2px rgba(0,0,0,.08));
         }
-        .nav-label { line-height: 1; }
+        .mb-text { line-height: 1; flex: 1; }
+        .mb-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #fff; box-shadow: 0 0 8px rgba(255,255,255,.7);
+        }
         .logout-btn {
           margin-top: 8px; padding: 12px; background: #f6f7fb; color: #8a8fa3;
           border: none; border-radius: 12px; cursor: pointer; font-size: 13.5px; font-weight: 600;

@@ -428,23 +428,36 @@ export default function Home() {
         .sb-uname { font-size: 13.5px; font-weight: 600; color: #333; }
         .sb-role { font-size: 11px; color: #9aa0b4; margin-top: 1px; }
 
-        .nav-list { list-style: none; flex: 1; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+        .nav-list { list-style: none; flex: 1; margin: 0; padding: 4px 0; display: flex; flex-direction: column; gap: 4px; }
         .nav-link {
-          display: flex; align-items: center; gap: 12px; padding: 9px 11px;
-          color: #6b6f80; text-decoration: none; font-size: 14px; cursor: pointer;
-          border-radius: 12px; transition: all .18s ease; font-weight: 500;
+          position: relative; display: flex; align-items: center; gap: 14px;
+          padding: 12px 16px; color: #5b6275; text-decoration: none; font-size: 14.5px;
+          cursor: pointer; border-radius: 12px; font-weight: 500; letter-spacing: .2px;
+          transition: background .2s ease, color .2s ease, transform .12s ease, box-shadow .2s ease;
+          overflow: hidden;
         }
-        .nav-link:hover { background: #f2f3fb; color: #667eea; }
+        .nav-link::before {
+          content: ''; position: absolute; left: 0; top: 50%;
+          width: 3px; height: 0; background: #667eea; border-radius: 0 3px 3px 0;
+          transform: translateY(-50%); transition: height .25s cubic-bezier(.4,0,.2,1);
+        }
+        .nav-link:hover {
+          background: rgba(102,126,234,.07);
+          color: #4f59d4;
+        }
+        .nav-link:hover::before { height: 18px; }
+        .nav-link:hover .nav-icon { transform: scale(1.1); }
+        .nav-link:active { transform: scale(.98); }
         .nav-link.active {
-          background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; font-weight: 600;
-          box-shadow: 0 8px 18px rgba(102,126,234,.38);
+          background: linear-gradient(135deg,#7a8eee 0%,#8d6bd1 100%);
+          color: #fff; font-weight: 600;
+          box-shadow: 0 10px 24px -6px rgba(102,126,234,.55), inset 0 1px 0 rgba(255,255,255,.18);
         }
+        .nav-link.active::before { display: none; }
         .nav-icon {
-          width: 32px; height: 32px; border-radius: 10px; background: #f0f1f8;
-          display: flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1;
-          transition: background .18s; flex-shrink: 0;
+          font-size: 19px; line-height: 1; width: 22px; text-align: center;
+          flex-shrink: 0; transition: transform .2s ease; filter: drop-shadow(0 1px 1px rgba(0,0,0,.06));
         }
-        .nav-link.active .nav-icon { background: rgba(255,255,255,.22); }
         .nav-label { line-height: 1; }
         .logout-btn {
           margin-top: 8px; padding: 12px; background: #f6f7fb; color: #8a8fa3;

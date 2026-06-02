@@ -552,6 +552,7 @@ export default function Home() {
         {bnItem('dashboard', '🏠', '首頁')}
         {bnItem('quotation', '✍️', '報價')}
         {bnItem('records', '📋', '紀錄')}
+        {user.role === 'admin' ? bnItem('users', '👥', '管理') : bnItem('password', '🔑', '密碼')}
         <button className="bn-item" onClick={doLogout}><span className="bn-icon">🚪</span><span className="bn-label">登出</span></button>
       </nav>
 

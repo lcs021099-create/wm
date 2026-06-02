@@ -188,7 +188,7 @@ export default function Home() {
     );
   };
   const bnItem = (id, icon, label) => (
-    <button className={`bn-item${section === id ? ' active' : ''}`} onClick={() => setSection(id)}>
+    <button className={`bn-item${section === id ? ' is-on' : ''}`} onClick={() => setSection(id)}>
       <span className="bn-icon">{icon}</span><span className="bn-label">{label}</span>
     </button>
   );
@@ -540,15 +540,6 @@ export default function Home() {
           .btn-save, .btn-print { min-width: unset; width: 100%; }
           .section-title { font-size: 17px; }
         }
-        .bn-item {
-          flex: 1; display: flex; flex-direction: column; align-items: center;
-          padding: 10px 0 12px; cursor: pointer; color: #aaa; font-size: 10px; gap: 3px;
-          border: none; background: none; transition: .15s;
-        }
-        .bn-item .bn-icon { font-size: 22px; line-height: 1; }
-        .bn-item.active { color: #667eea; }
-        .bn-item.active .bn-label { font-weight: 700; }
-
         @media (min-width: 681px) and (max-width: 1024px) {
           .sidebar { width: 212px; }
           .main { margin-left: 212px; padding: 20px; }
@@ -631,6 +622,61 @@ export default function Home() {
           background: #fff;
           box-shadow: 0 0 10px rgba(255,255,255,.8);
           flex-shrink: 0;
+        }
+
+        /* === Mobile bottom nav (forced global to bypass styled-jsx button scope issue) === */
+        .bottom-nav {
+          background: rgba(255,255,255,.96);
+          -webkit-backdrop-filter: saturate(180%) blur(14px);
+          backdrop-filter: saturate(180%) blur(14px);
+          border-top: 1px solid #eef0f4;
+          box-shadow: 0 -6px 24px rgba(0,0,0,.07);
+          padding: 4px 6px;
+          padding-bottom: calc(4px + env(safe-area-inset-bottom));
+        }
+        .bn-item {
+          flex: 1 1 0;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          padding: 9px 0 7px;
+          background: transparent;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          color: #9aa0b4;
+          font-size: 11px;
+          font-weight: 600;
+          font-family: inherit;
+          -webkit-appearance: none;
+          appearance: none;
+          position: relative;
+          transition: color .2s ease, transform .12s ease;
+        }
+        .bn-item:active { transform: scale(.88); }
+        .bn-icon {
+          font-size: 22px;
+          line-height: 1;
+          transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+          filter: drop-shadow(0 1px 2px rgba(0,0,0,.1));
+        }
+        .bn-label { line-height: 1; letter-spacing: .3px; }
+        .bn-item.is-on { color: #667eea; }
+        .bn-item.is-on .bn-icon { transform: translateY(-3px) scale(1.16); }
+        .bn-item.is-on .bn-label { font-weight: 800; }
+        .bn-item.is-on::after {
+          content: '';
+          position: absolute;
+          top: -4px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 30px;
+          height: 3px;
+          border-radius: 0 0 4px 4px;
+          background: linear-gradient(90deg, #667eea, #9168d5);
         }
 
         @media print {

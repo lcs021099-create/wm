@@ -471,6 +471,7 @@ export default function Home() {
         .field-g { display: flex; flex-direction: column; gap: 5px; }
         .field-g label { font-size: 12px; font-weight: 600; color: #666; }
         .field-g input, .field-g select, .field-g textarea {
+          width: 100%; min-width: 0; box-sizing: border-box;
           padding: 11px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px;
           font-size: 14px; font-family: inherit; transition: .2s; background: #fafafa;
         }
@@ -480,7 +481,7 @@ export default function Home() {
         .field-g textarea { height: 72px; resize: vertical; }
 
         .prod-row { background: #f8f9ff; border: 1.5px solid #e8eaf6; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
-        .prod-row .prod-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+        .prod-row .prod-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
         .prod-row .prod-name { grid-column: 1/-1; }
         .prod-row .del-btn { width: 100%; padding: 9px; background: #fff0f0; color: #e53935; border: 1.5px solid #ffcdd2; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .btn-add-prod { width: 100%; padding: 12px; background: #f0fff4; color: #2e7d32; border: 1.5px dashed #a5d6a7; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; margin-top: 4px; transition: .2s; }

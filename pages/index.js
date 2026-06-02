@@ -700,10 +700,20 @@ export default function Home() {
         }
 
         @media print {
-          body * { visibility: hidden !important; }
-          #printArea, #printArea * { visibility: visible !important; }
-          #printArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; }
-          #printArea .page { box-shadow: none; margin: 0 !important; width: 100%; min-height: auto; padding: 10mm 12mm; transform: none !important; }
+          html, body {
+            height: auto !important; min-height: 0 !important;
+            overflow: visible !important; margin: 0 !important; padding: 0 !important;
+          }
+          .app {
+            display: block !important; height: auto !important;
+            min-height: 0 !important; overflow: visible !important;
+          }
+          .sidebar, .main, .bottom-nav { display: none !important; }
+          #printArea { display: block !important; }
+          #printArea .page {
+            box-shadow: none !important; margin: 0 !important; width: 100% !important;
+            min-height: auto !important; padding: 10mm 12mm !important; transform: none !important;
+          }
           @page { size: A4; margin: 0; }
         }
       `}</style>

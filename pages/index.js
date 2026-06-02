@@ -157,8 +157,8 @@ export default function Home() {
       <table className="q-table">
         <thead>
           <tr>
-            <th style={{ width: '45%' }}>品名</th>
-            <th style={{ width: '15%' }}>尺寸</th>
+            <th style={{ width: '40%' }}>品名</th>
+            <th style={{ width: '20%' }}>尺寸</th>
             <th style={{ width: '20%' }}>數量</th>
             <th style={{ width: '20%' }}>噸價</th>
           </tr>

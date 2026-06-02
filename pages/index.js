@@ -571,7 +571,7 @@ export default function Home() {
         }
         .q-table td { padding: 16px 12px; text-align: center; border-bottom: 1px solid #eee; color: #333; }
         .q-remarks { font-size: 11.5px; margin-bottom: 18px; white-space: pre-wrap; line-height: 1.85; color: #666; }
-        .q-footer { font-size: 11.5px; line-height: 2.2; color: #666; border-top: 1px solid #e6e6e6; padding-top: 18px; margin-top: 6px; }
+        .q-footer { font-size: 11.5px; line-height: 2.2; color: #666; padding-top: 4px; margin-top: 6px; }
         .q-footer .hl { font-weight: 600; margin-top: 10px; color: #1a1a1a; letter-spacing: 2px; }
 
         /* === Sidebar menu buttons (forced global to bypass styled-jsx scope issue with <button>) === */

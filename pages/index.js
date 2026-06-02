@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import { authAPI, usersAPI } from '../lib/api';
 
 const CO = {
   wuming:   { zh: '東莞市無名紙業有限公司', en: 'DONGGUAN WUMING PAPER CO.,LTD', email: 'wuming@prostandard.com.hk', logo: '/logo.png' },
@@ -27,6 +28,10 @@ export default function Home() {
   const [products, setProducts] = useState([{ item: '', size: '', qty: '', price: '' }]);
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState('');
+  const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirm: '' });
+  const [pwMsg, setPwMsg] = useState('');
+  const [pending, setPending] = useState([]);
+  const [actingId, setActingId] = useState(null);
   const pageRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -35,12 +40,42 @@ export default function Home() {
     const token = localStorage.getItem('token');
     if (!token) { router.push('/login'); return; }
     const u = localStorage.getItem('user');
-    if (u) setUser(JSON.parse(u));
+    const parsed = u ? JSON.parse(u) : null;
+    if (parsed) setUser(parsed);
     setForm((f) => ({ ...f, date: todayStr() }));
     setRecords(JSON.parse(localStorage.getItem('qrecs') || '[]'));
+    if (parsed?.role === 'admin') usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
   }, []);
 
   const loadRecords = () => setRecords(JSON.parse(localStorage.getItem('qrecs') || '[]'));
+  const loadPending = () => usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
+
+  // 修改密碼
+  const changePassword = async () => {
+    if (!pwForm.oldPassword || !pwForm.newPassword) return setPwMsg('❌ 請填寫現有密碼與新密碼');
+    if (pwForm.newPassword !== pwForm.confirm) return setPwMsg('❌ 新密碼與確認不符');
+    if (pwForm.newPassword.length < 6) return setPwMsg('❌ 新密碼至少需 6 個字元');
+    try {
+      await authAPI.changePassword({ oldPassword: pwForm.oldPassword, newPassword: pwForm.newPassword });
+      setPwMsg('✅ 密碼已成功更新');
+      setPwForm({ oldPassword: '', newPassword: '', confirm: '' });
+    } catch (err) { setPwMsg('❌ ' + (err.response?.data?.error || '更新失敗')); }
+  };
+
+  // 管理員審批
+  const approveUser = async (id) => {
+    setActingId(id);
+    try { await usersAPI.approve(id); await loadPending(); }
+    catch (err) { alert(err.response?.data?.error || '批准失敗'); }
+    finally { setActingId(null); }
+  };
+  const rejectUser = async (id) => {
+    if (!confirm('確定拒絕此註冊申請？')) return;
+    setActingId(id);
+    try { await usersAPI.reject(id); await loadPending(); }
+    catch (err) { alert(err.response?.data?.error || '拒絕失敗'); }
+    finally { setActingId(null); }
+  };
 
   // 表單與產品
   const setField = (k, val) => setForm((f) => ({ ...f, [k]: val }));
@@ -219,6 +254,8 @@ export default function Home() {
           {navLink('dashboard', '🏠', '儀表板')}
           {navLink('quotation', '✍️', '生成報價')}
           {navLink('records', '📋', '報價紀錄')}
+          {navLink('password', '🔑', '修改密碼')}
+          {user.role === 'admin' && navLink('approval', '✅', `用戶審批${pending.length ? ` (${pending.length})` : ''}`)}
         </div>
         <button className="logout-btn" onClick={doLogout}>🚪 登出</button>
       </div>
@@ -239,6 +276,14 @@ export default function Home() {
               <div className="dash-card">
                 <div className="icon">📊</div><h3>{records.length} 份報價</h3><p>系統內共有報價單</p>
               </div>
+              <div className="dash-card" onClick={() => setSection('password')}>
+                <div className="icon">🔑</div><h3>修改密碼</h3><p>更改你的登入密碼</p>
+              </div>
+              {user.role === 'admin' && (
+                <div className="dash-card" onClick={() => setSection('approval')}>
+                  <div className="icon">✅</div><h3>用戶審批{pending.length ? ` (${pending.length})` : ''}</h3><p>審批新註冊的用戶</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -389,6 +434,67 @@ export default function Home() {
                 );
               })
             )}
+          </div>
+        )}
+
+        {/* CHANGE PASSWORD */}
+        {section === 'password' && (
+          <div className="section active">
+            <div className="section-title">🔑 修改密碼</div>
+            <div className="panel">
+              <h3>更改登入密碼</h3>
+              <div className="form-row" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="field-g">
+                  <label>現有密碼</label>
+                  <input type="password" value={pwForm.oldPassword} onChange={(e) => setPwForm({ ...pwForm, oldPassword: e.target.value })} />
+                </div>
+                <div className="field-g">
+                  <label>新密碼（至少 6 個字元）</label>
+                  <input type="password" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })} />
+                </div>
+                <div className="field-g">
+                  <label>確認新密碼</label>
+                  <input type="password" value={pwForm.confirm} onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })} />
+                </div>
+              </div>
+              {pwMsg && <p style={{ fontSize: 13, marginTop: 12, color: pwMsg.startsWith('✅') ? '#2e7d32' : '#e53935' }}>{pwMsg}</p>}
+              <div className="action-row" style={{ marginTop: 14 }}>
+                <button className="btn-save" onClick={changePassword}>💾 更新密碼</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* USER APPROVAL (admin only) */}
+        {section === 'approval' && user.role === 'admin' && (
+          <div className="section active">
+            <div className="section-title">✅ 用戶審批</div>
+            <div className="panel">
+              <h3>待批准的註冊申請（{pending.length}）</h3>
+              {pending.length === 0 ? (
+                <div className="empty" style={{ padding: '40px 0' }}>
+                  目前沒有待批准的申請<br />
+                  <span style={{ fontSize: 13, color: '#ddd' }}>有新用戶在登入頁註冊後會出現在這裡</span>
+                </div>
+              ) : (
+                pending.map((u) => (
+                  <div className="rec-card" key={u.id} style={{ marginBottom: 10 }}>
+                    <div className="rec-top">
+                      <span className="rec-co">
+                        {u.name} <span style={{ fontSize: 13, color: '#999', fontWeight: 400 }}>({u.username})</span>
+                      </span>
+                      <span className="rec-date">{u.created_at || ''}</span>
+                    </div>
+                    <div className="rec-actions">
+                      <button className="rec-load" disabled={actingId === u.id} style={{ background: '#2e7d32' }} onClick={() => approveUser(u.id)}>
+                        {actingId === u.id ? '處理中…' : '✓ 批准'}
+                      </button>
+                      <button className="rec-del" disabled={actingId === u.id} onClick={() => rejectUser(u.id)}>✕ 拒絕</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

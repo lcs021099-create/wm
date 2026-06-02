@@ -2,9 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 
 const CO = {
-  wuming:   { zh: '東莞市無名紙業有限公司', en: 'DONGGUAN WUMING PAPER CO.,LTD', email: 'wuming@prostandard.com.hk' },
-  standard: { zh: '標準紙行有限公司',       en: 'PRO-STANDARD PAPER CO.,LTD',    email: 'paper@prostandard.com.hk' },
-  pangu:    { zh: '東莞市盤古紙業有限公司', en: 'DONGGUAN PAN GU PAPER CO.,LTD',  email: 'pangu@prostandard.com.hk' },
+  wuming:   { zh: '東莞市無名紙業有限公司', en: 'DONGGUAN WUMING PAPER CO.,LTD', email: 'wuming@prostandard.com.hk', logo: '/logo.png' },
+  standard: { zh: '標準紙行有限公司',       en: 'PRO-STANDARD PAPER CO.,LTD',    email: 'paper@prostandard.com.hk', logo: '' },
+  pangu:    { zh: '東莞市盤古紙業有限公司', en: 'DONGGUAN PAN GU PAPER CO.,LTD',  email: 'pangu@prostandard.com.hk', logo: '' },
 };
 
 const SENDERS = {
@@ -131,12 +131,15 @@ export default function Home() {
   const quoteBody = (
     <>
       <div className="q-header">
-        <p className="co-zh">{co.zh}</p>
-        <p className="co-en">{co.en}</p>
-        <div className="co-det">
-          國內公司: 東莞市虎門鎮連升中路億洲商務中心605室 &nbsp; 工廠: 東莞市洪梅鎮河西工業大道<br />
-          香港公司: 標準紙行有限公司 香港新界荃灣沙咀道十一至十九號, 達貿中心五樓三至五室<br />
-          Tel: (769) 8555 2197 &nbsp; (769) 8122 4183 &nbsp; (852) 2498 9638 &nbsp; Email: {co.email}
+        {co.logo ? <img src={co.logo} className="q-logo" alt="logo" /> : null}
+        <div className="q-head-text">
+          <p className="co-zh">{co.zh}</p>
+          <p className="co-en">{co.en}</p>
+          <div className="co-det">
+            國內公司: 東莞市虎門鎮連升中路億洲商務中心605室 &nbsp; 工廠: 東莞市洪梅鎮河西工業大道<br />
+            香港公司: 標準紙行有限公司 香港新界荃灣沙咀道十一至十九號, 達貿中心五樓三至五室<br />
+            Tel: (769) 8555 2197 &nbsp; (769) 8122 4183 &nbsp; (852) 2498 9638 &nbsp; Email: {co.email}
+          </div>
         </div>
       </div>
       <div className="meta-info">
@@ -490,26 +493,6 @@ export default function Home() {
         .btn-print:active { opacity: .85; }
 
         .preview-wrap { background: #ccc; padding: 16px; border-radius: 12px; overflow-x: auto; }
-        .page {
-          width: 210mm; min-height: 296mm; padding: 14mm 17mm;
-          background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.18);
-          font-family: 'Microsoft JhengHei', sans-serif; color: #000;
-        }
-        .q-header { border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 16px; text-align: center; }
-        .co-zh { font-size: 24px; font-weight: 700; margin-bottom: 3px; }
-        .co-en { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-        .co-det { font-size: 9.5px; line-height: 1.5; }
-        .meta-info { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 12.5px; }
-        .meta-left, .meta-right { width: 48%; }
-        .meta-row { display: flex; margin-bottom: 4px; }
-        .meta-lbl { font-weight: 700; min-width: 48px; }
-        .q-title { text-align: center; font-size: 22px; font-weight: 700; text-decoration: underline; letter-spacing: 3px; margin-bottom: 16px; }
-        .q-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12.5px; }
-        .q-table th, .q-table td { border: 1px solid #000; padding: 8px; text-align: center; }
-        .q-table th { background: #f0f0f0; font-weight: 700; }
-        .q-remarks { font-size: 12.5px; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.6; }
-        .q-footer { font-size: 12.5px; line-height: 2; }
-        .q-footer .hl { font-weight: 700; margin-top: 5px; }
 
         .search-bar { display: flex; gap: 10px; margin-bottom: 16px; }
         .search-input { flex: 1; padding: 12px 14px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: #fff; }
@@ -554,6 +537,33 @@ export default function Home() {
       `}</style>
 
       <style jsx global>{`
+        /* === A4 quotation sheet (forced global; also used by print) === */
+        .page {
+          width: 210mm; min-height: 296mm; padding: 14mm 16mm;
+          background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.18);
+          font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif; color: #000;
+        }
+        .q-header {
+          display: flex; align-items: center; gap: 16px;
+          border-bottom: 2.5px solid #000; padding-bottom: 12px; margin-bottom: 18px;
+        }
+        .q-logo { width: 92px; height: auto; flex-shrink: 0; object-fit: contain; }
+        .q-head-text { flex: 1; text-align: center; }
+        .co-zh { font-size: 25px; font-weight: 700; margin: 0 0 3px; letter-spacing: 1px; }
+        .co-en { font-size: 13px; font-weight: 700; margin: 0 0 5px; letter-spacing: .5px; }
+        .co-det { font-size: 9.5px; line-height: 1.6; }
+        .meta-info { display: flex; justify-content: space-between; margin-bottom: 18px; font-size: 13px; }
+        .meta-left, .meta-right { width: 48%; }
+        .meta-row { display: flex; margin-bottom: 7px; }
+        .meta-lbl { font-weight: 700; min-width: 54px; }
+        .q-title { text-align: center; font-size: 23px; font-weight: 700; text-decoration: underline; letter-spacing: 5px; margin-bottom: 18px; }
+        .q-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+        .q-table th, .q-table td { border: 1px solid #000; padding: 9px; text-align: center; }
+        .q-table th { background: #f0f0f0; font-weight: 700; }
+        .q-remarks { font-size: 13px; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.7; }
+        .q-footer { font-size: 13px; line-height: 2; }
+        .q-footer .hl { font-weight: 700; margin-top: 6px; }
+
         /* === Sidebar menu buttons (forced global to bypass styled-jsx scope issue with <button>) === */
         .menu-btn {
           position: relative;

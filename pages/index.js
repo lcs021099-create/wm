@@ -480,7 +480,7 @@ export default function Home() {
         .field-g textarea { height: 72px; resize: vertical; }
 
         .prod-row { background: #f8f9ff; border: 1.5px solid #e8eaf6; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
-        .prod-row .prod-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 10px; }
+        .prod-row .prod-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
         .prod-row .prod-name { grid-column: 1/-1; }
         .prod-row .del-btn { width: 100%; padding: 9px; background: #fff0f0; color: #e53935; border: 1.5px solid #ffcdd2; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .btn-add-prod { width: 100%; padding: 12px; background: #f0fff4; color: #2e7d32; border: 1.5px dashed #a5d6a7; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; margin-top: 4px; transition: .2s; }

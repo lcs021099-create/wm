@@ -539,35 +539,40 @@ export default function Home() {
 
       <style jsx global>{`
         /* === A4 quotation sheet (forced global; also used by print) === */
+        /* === 現代簡約設計 === */
         .page {
-          width: 210mm; min-height: 296mm; padding: 14mm 16mm;
-          background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.18);
-          font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif; color: #000;
+          width: 210mm; min-height: 296mm; padding: 18mm 18mm;
+          background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.12);
+          font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif; color: #2c2c2c;
         }
         .q-header {
-          position: relative; min-height: 96px;
+          position: relative; min-height: 86px;
           display: flex; align-items: center;
-          border-bottom: 2.5px solid #000; padding-bottom: 12px; margin-bottom: 18px;
+          border-bottom: 1px solid #e6e6e6; padding-bottom: 20px; margin-bottom: 28px;
         }
         .q-logo {
           position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-          width: 96px; height: auto; object-fit: contain;
+          width: 82px; height: auto; object-fit: contain;
         }
         .q-head-text { width: 100%; text-align: center; }
-        .co-zh { font-size: 25px; font-weight: 700; margin: 0 0 3px; letter-spacing: 1px; }
-        .co-en { font-size: 13px; font-weight: 700; margin: 0 0 5px; letter-spacing: .5px; }
-        .co-det { font-size: 9.5px; line-height: 1.6; }
-        .meta-info { display: flex; justify-content: space-between; margin-bottom: 18px; font-size: 13px; }
+        .co-zh { font-size: 22px; font-weight: 600; letter-spacing: 3px; margin: 0 0 5px; color: #1a1a1a; }
+        .co-en { font-size: 10.5px; font-weight: 500; letter-spacing: 2px; color: #9a9a9a; margin: 0 0 9px; }
+        .co-det { font-size: 9px; line-height: 1.75; color: #aaa; }
+        .meta-info { display: flex; justify-content: space-between; margin-bottom: 32px; font-size: 12.5px; }
         .meta-left, .meta-right { width: 48%; }
-        .meta-row { display: flex; margin-bottom: 7px; }
-        .meta-lbl { font-weight: 700; min-width: 54px; }
-        .q-title { text-align: center; font-size: 23px; font-weight: 700; text-decoration: underline; letter-spacing: 5px; margin-bottom: 18px; }
-        .q-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
-        .q-table th, .q-table td { border: 1px solid #000; padding: 9px; text-align: center; }
-        .q-table th { background: #fff; font-weight: 700; }
-        .q-remarks { font-size: 13px; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.7; }
-        .q-footer { font-size: 13px; line-height: 2; }
-        .q-footer .hl { font-weight: 700; margin-top: 6px; }
+        .meta-row { display: flex; margin-bottom: 10px; align-items: baseline; }
+        .meta-lbl { min-width: 58px; color: #9a9a9a; font-size: 10.5px; font-weight: 600; letter-spacing: 1.5px; }
+        .q-title { text-align: center; font-size: 16px; font-weight: 600; letter-spacing: 12px; margin-bottom: 28px; color: #1a1a1a; }
+        .q-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 12.5px; }
+        .q-table th {
+          font-weight: 600; color: #9a9a9a; font-size: 10.5px; letter-spacing: 1.5px;
+          text-transform: uppercase; padding: 0 12px 12px; text-align: center;
+          border-bottom: 1.5px solid #2c2c2c;
+        }
+        .q-table td { padding: 16px 12px; text-align: center; border-bottom: 1px solid #eee; color: #333; }
+        .q-remarks { font-size: 11.5px; margin-bottom: 18px; white-space: pre-wrap; line-height: 1.85; color: #666; }
+        .q-footer { font-size: 11.5px; line-height: 2.2; color: #666; border-top: 1px solid #e6e6e6; padding-top: 18px; margin-top: 6px; }
+        .q-footer .hl { font-weight: 600; margin-top: 10px; color: #1a1a1a; letter-spacing: 2px; }
 
         /* === Sidebar menu buttons (forced global to bypass styled-jsx scope issue with <button>) === */
         .menu-btn {

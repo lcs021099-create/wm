@@ -31,6 +31,7 @@ export default function Home() {
   const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirm: '' });
   const [pwMsg, setPwMsg] = useState('');
   const [pending, setPending] = useState([]);
+  const [users, setUsers] = useState([]);
   const [actingId, setActingId] = useState(null);
   const pageRef = useRef(null);
   const wrapRef = useRef(null);
@@ -44,11 +45,15 @@ export default function Home() {
     if (parsed) setUser(parsed);
     setForm((f) => ({ ...f, date: todayStr() }));
     setRecords(JSON.parse(localStorage.getItem('qrecs') || '[]'));
-    if (parsed?.role === 'admin') usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
+    if (parsed?.role === 'admin') {
+      usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
+      usersAPI.list().then((r) => setUsers(r.data)).catch(() => {});
+    }
   }, []);
 
   const loadRecords = () => setRecords(JSON.parse(localStorage.getItem('qrecs') || '[]'));
   const loadPending = () => usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
+  const loadUsers = () => usersAPI.list().then((r) => setUsers(r.data)).catch(() => {});
 
   // 修改密碼
   const changePassword = async () => {
@@ -65,7 +70,7 @@ export default function Home() {
   // 管理員審批
   const approveUser = async (id) => {
     setActingId(id);
-    try { await usersAPI.approve(id); await loadPending(); }
+    try { await usersAPI.approve(id); await loadPending(); await loadUsers(); }
     catch (err) { alert(err.response?.data?.error || '批准失敗'); }
     finally { setActingId(null); }
   };
@@ -75,6 +80,21 @@ export default function Home() {
     try { await usersAPI.reject(id); await loadPending(); }
     catch (err) { alert(err.response?.data?.error || '拒絕失敗'); }
     finally { setActingId(null); }
+  };
+  const deleteUser = async (u) => {
+    if (u.id === user.id) return alert('不能刪除自己的帳號');
+    if (!confirm(`確定刪除用戶「${u.name}」(${u.username})？`)) return;
+    setActingId(u.id);
+    try { await usersAPI.delete(u.id); await loadUsers(); }
+    catch (err) { alert(err.response?.data?.error || '刪除失敗'); }
+    finally { setActingId(null); }
+  };
+  const resetUserPassword = async (u) => {
+    const np = prompt(`為「${u.name}」(${u.username}) 設定新密碼（至少 6 個字元）：`);
+    if (np === null) return;
+    if (np.length < 6) return alert('密碼至少需 6 個字元');
+    try { await usersAPI.update(u.id, { password: np }); alert(`✅ 已更新「${u.name}」的密碼`); }
+    catch (err) { alert(err.response?.data?.error || '更新失敗'); }
   };
 
   // 表單與產品
@@ -255,7 +275,7 @@ export default function Home() {
           {navLink('quotation', '✍️', '生成報價')}
           {navLink('records', '📋', '報價紀錄')}
           {navLink('password', '🔑', '修改密碼')}
-          {user.role === 'admin' && navLink('approval', '✅', `用戶審批${pending.length ? ` (${pending.length})` : ''}`)}
+          {user.role === 'admin' && navLink('users', '👥', `用戶管理${pending.length ? ` (${pending.length})` : ''}`)}
         </div>
         <button className="logout-btn" onClick={doLogout}>🚪 登出</button>
       </div>
@@ -280,8 +300,8 @@ export default function Home() {
                 <div className="icon">🔑</div><h3>修改密碼</h3><p>更改你的登入密碼</p>
               </div>
               {user.role === 'admin' && (
-                <div className="dash-card" onClick={() => setSection('approval')}>
-                  <div className="icon">✅</div><h3>用戶審批{pending.length ? ` (${pending.length})` : ''}</h3><p>審批新註冊的用戶</p>
+                <div className="dash-card" onClick={() => setSection('users')}>
+                  <div className="icon">👥</div><h3>用戶管理{pending.length ? ` (${pending.length})` : ''}</h3><p>審批註冊、刪除用戶、改密碼</p>
                 </div>
               )}
             </div>
@@ -465,14 +485,16 @@ export default function Home() {
           </div>
         )}
 
-        {/* USER APPROVAL (admin only) */}
-        {section === 'approval' && user.role === 'admin' && (
+        {/* USER MANAGEMENT (admin only) */}
+        {section === 'users' && user.role === 'admin' && (
           <div className="section active">
-            <div className="section-title">✅ 用戶審批</div>
+            <div className="section-title">👥 用戶管理</div>
+
+            {/* 待批准申請 */}
             <div className="panel">
               <h3>待批准的註冊申請（{pending.length}）</h3>
               {pending.length === 0 ? (
-                <div className="empty" style={{ padding: '40px 0' }}>
+                <div className="empty" style={{ padding: '24px 0' }}>
                   目前沒有待批准的申請<br />
                   <span style={{ fontSize: 13, color: '#ddd' }}>有新用戶在登入頁註冊後會出現在這裡</span>
                 </div>
@@ -490,6 +512,32 @@ export default function Home() {
                         {actingId === u.id ? '處理中…' : '✓ 批准'}
                       </button>
                       <button className="rec-del" disabled={actingId === u.id} onClick={() => rejectUser(u.id)}>✕ 拒絕</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* 現有用戶 */}
+            <div className="panel">
+              <h3>現有用戶（{users.length}）</h3>
+              {users.length === 0 ? (
+                <div className="empty" style={{ padding: '24px 0' }}>尚無用戶資料</div>
+              ) : (
+                users.map((u) => (
+                  <div className="rec-card" key={u.id} style={{ marginBottom: 10 }}>
+                    <div className="rec-top">
+                      <span className="rec-co">
+                        {u.name} <span style={{ fontSize: 13, color: '#999', fontWeight: 400 }}>({u.username})</span>
+                        {u.id === user.id && <span style={{ fontSize: 12, color: '#667eea', marginLeft: 6 }}>（你）</span>}
+                      </span>
+                      <span className="rec-date">{u.role === 'admin' ? '管理員' : '業務員'}</span>
+                    </div>
+                    <div className="rec-actions">
+                      <button className="rec-load" disabled={actingId === u.id} onClick={() => resetUserPassword(u)}>🔑 改密碼</button>
+                      <button className="rec-del" disabled={actingId === u.id || u.id === user.id} onClick={() => deleteUser(u)}>
+                        {actingId === u.id ? '…' : '🗑 刪除'}
+                      </button>
                     </div>
                   </div>
                 ))

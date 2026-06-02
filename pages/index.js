@@ -564,7 +564,7 @@ export default function Home() {
         .q-title { text-align: center; font-size: 23px; font-weight: 700; text-decoration: underline; letter-spacing: 5px; margin-bottom: 18px; }
         .q-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
         .q-table th, .q-table td { border: 1px solid #000; padding: 9px; text-align: center; }
-        .q-table th { background: #f0f0f0; font-weight: 700; }
+        .q-table th { background: #fff; font-weight: 700; }
         .q-remarks { font-size: 13px; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.7; }
         .q-footer { font-size: 13px; line-height: 2; }
         .q-footer .hl { font-weight: 700; margin-top: 6px; }

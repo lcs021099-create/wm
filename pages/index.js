@@ -440,50 +440,6 @@ export default function Home() {
           text-transform: uppercase; letter-spacing: 1.5px;
           padding: 6px 14px 10px;
         }
-        .menu-btn {
-          position: relative;
-          display: flex; align-items: center; gap: 14px;
-          width: 100%; padding: 12px 16px;
-          background: transparent; border: none; outline: none;
-          color: #4a5060; font-size: 14.5px; font-weight: 600;
-          font-family: inherit; text-align: left;
-          letter-spacing: .3px; cursor: pointer;
-          border-radius: 12px;
-          transition: background .22s ease, color .22s ease, transform .12s ease, box-shadow .25s ease;
-        }
-        .menu-btn::before {
-          content: ''; position: absolute; left: -14px; top: 50%;
-          width: 4px; height: 0; background: #667eea;
-          border-radius: 0 4px 4px 0; transform: translateY(-50%);
-          transition: height .28s cubic-bezier(.4,0,.2,1);
-        }
-        .menu-btn:hover {
-          background: linear-gradient(90deg, rgba(102,126,234,.10), rgba(102,126,234,.04));
-          color: #4f59d4;
-        }
-        .menu-btn:hover::before { height: 20px; }
-        .menu-btn:hover .mb-icon { transform: scale(1.15) rotate(-3deg); }
-        .menu-btn:active { transform: scale(.97); }
-        .menu-btn.is-on {
-          background: linear-gradient(135deg, #6e7ff3 0%, #9168d5 100%);
-          color: #fff;
-          box-shadow:
-            0 12px 28px -8px rgba(102,126,234,.6),
-            0 4px 10px -2px rgba(145,104,213,.35),
-            inset 0 1px 0 rgba(255,255,255,.25);
-        }
-        .menu-btn.is-on::before { display: none; }
-        .menu-btn.is-on .mb-icon { transform: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.18)); }
-        .mb-icon {
-          font-size: 20px; line-height: 1; width: 24px; text-align: center;
-          flex-shrink: 0; transition: transform .25s cubic-bezier(.34,1.56,.64,1);
-          filter: drop-shadow(0 1px 2px rgba(0,0,0,.08));
-        }
-        .mb-text { line-height: 1; flex: 1; }
-        .mb-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #fff; box-shadow: 0 0 8px rgba(255,255,255,.7);
-        }
         .logout-btn {
           margin-top: 8px; padding: 12px; background: #f6f7fb; color: #8a8fa3;
           border: none; border-radius: 12px; cursor: pointer; font-size: 13.5px; font-weight: 600;
@@ -602,6 +558,81 @@ export default function Home() {
       `}</style>
 
       <style jsx global>{`
+        /* === Sidebar menu buttons (forced global to bypass styled-jsx scope issue with <button>) === */
+        .menu-btn {
+          position: relative;
+          display: flex !important;
+          align-items: center;
+          gap: 14px;
+          width: 100%;
+          padding: 13px 16px;
+          margin: 0;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: #4a5060;
+          font-size: 14.5px;
+          font-weight: 600;
+          font-family: inherit;
+          text-align: left;
+          letter-spacing: .3px;
+          cursor: pointer;
+          border-radius: 12px;
+          transition: background .22s ease, color .22s ease, transform .12s ease, box-shadow .25s ease;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        .menu-btn::before {
+          content: '';
+          position: absolute;
+          left: -14px;
+          top: 50%;
+          width: 4px;
+          height: 0;
+          background: #667eea;
+          border-radius: 0 4px 4px 0;
+          transform: translateY(-50%);
+          transition: height .28s cubic-bezier(.4,0,.2,1);
+        }
+        .menu-btn:hover {
+          background: linear-gradient(90deg, rgba(102,126,234,.12), rgba(102,126,234,.04));
+          color: #4f59d4;
+        }
+        .menu-btn:hover::before { height: 22px; }
+        .menu-btn:hover .mb-icon { transform: scale(1.15) rotate(-4deg); }
+        .menu-btn:active { transform: scale(.97); }
+        .menu-btn.is-on {
+          background: linear-gradient(135deg, #6e7ff3 0%, #9168d5 100%);
+          color: #fff;
+          box-shadow:
+            0 12px 28px -8px rgba(102,126,234,.55),
+            0 4px 10px -2px rgba(145,104,213,.3),
+            inset 0 1px 0 rgba(255,255,255,.25);
+        }
+        .menu-btn.is-on::before { display: none; }
+        .menu-btn.is-on .mb-icon {
+          transform: none;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,.18));
+        }
+        .mb-icon {
+          font-size: 20px;
+          line-height: 1;
+          width: 24px;
+          text-align: center;
+          flex-shrink: 0;
+          transition: transform .28s cubic-bezier(.34,1.56,.64,1);
+          filter: drop-shadow(0 1px 2px rgba(0,0,0,.08));
+        }
+        .mb-text { line-height: 1; flex: 1; }
+        .mb-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #fff;
+          box-shadow: 0 0 10px rgba(255,255,255,.8);
+          flex-shrink: 0;
+        }
+
         @media print {
           body * { visibility: hidden !important; }
           #printArea, #printArea * { visibility: visible !important; }

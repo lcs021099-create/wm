@@ -149,7 +149,7 @@ export default function Home() {
         </div>
         <div className="meta-right">
           <div className="meta-row"><span className="meta-lbl">自:</span><span>{form.from}</span></div>
-          <div className="meta-row" style={{ paddingLeft: 48 }}><span>{form.phone}</span></div>
+          <div className="meta-row"><span className="meta-lbl" /><span>{form.phone}</span></div>
           <div className="meta-row"><span className="meta-lbl">日期:</span><span>{form.date}</span></div>
         </div>
       </div>
@@ -544,11 +544,15 @@ export default function Home() {
           font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif; color: #000;
         }
         .q-header {
-          display: flex; align-items: center; gap: 16px;
+          position: relative; min-height: 96px;
+          display: flex; align-items: center;
           border-bottom: 2.5px solid #000; padding-bottom: 12px; margin-bottom: 18px;
         }
-        .q-logo { width: 92px; height: auto; flex-shrink: 0; object-fit: contain; }
-        .q-head-text { flex: 1; text-align: center; }
+        .q-logo {
+          position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+          width: 96px; height: auto; object-fit: contain;
+        }
+        .q-head-text { width: 100%; text-align: center; }
         .co-zh { font-size: 25px; font-weight: 700; margin: 0 0 3px; letter-spacing: 1px; }
         .co-en { font-size: 13px; font-weight: 700; margin: 0 0 5px; letter-spacing: .5px; }
         .co-det { font-size: 9.5px; line-height: 1.6; }

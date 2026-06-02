@@ -528,8 +528,13 @@ export default function Home() {
         #printArea { display: none; }
 
         @media (max-width: 680px) {
+          .app { height: 100dvh; overflow: hidden; }
           .sidebar { display: none; }
-          .main { margin-left: 0; padding: 16px; padding-bottom: 80px; }
+          .main {
+            margin-left: 0; min-height: 0; height: 100%;
+            padding: 16px; padding-bottom: 88px;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+          }
           .bottom-nav {
             display: flex; position: fixed; bottom: 0; left: 0; right: 0;
             background: #fff; border-top: 1px solid #eee; z-index: 200;

@@ -16,6 +16,14 @@ const SENDERS = {
 
 const pad = (n) => String(n).padStart(2, '0');
 const todayStr = () => { const d = new Date(); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`; };
+const formatDuration = (s) => {
+  s = Math.round(s || 0);
+  if (s < 60) return s + ' 秒';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + ' 分鐘';
+  const h = Math.floor(m / 60);
+  return h + ' 小時 ' + (m % 60) + ' 分';
+};
 
 export default function Home() {
   const router = useRouter();
@@ -182,8 +190,9 @@ export default function Home() {
 
   const doPrint = () => window.print();
 
-  const doLogout = () => {
+  const doLogout = async () => {
     if (!confirm('確定登出？')) return;
+    try { await authAPI.logout(); } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     router.push('/login');
@@ -577,6 +586,10 @@ export default function Home() {
                         {u.id === user.id && <span style={{ fontSize: 12, color: '#667eea', marginLeft: 6 }}>（你）</span>}
                       </span>
                       <span className="rec-date">{u.role === 'admin' ? '管理員' : '業務員'}</span>
+                    </div>
+                    <div className="rec-meta" style={{ fontSize: 12, lineHeight: 1.7 }}>
+                      🔢 登入 {u.login_count || 0} 次 &nbsp;·&nbsp; ⏱️ 時長 {formatDuration(u.total_seconds)}<br />
+                      🕒 最後 {u.last_login_at ? new Date(u.last_login_at).toLocaleString('zh-HK') : '—'} &nbsp;·&nbsp; 🌐 IP {u.last_login_ip || '—'}
                     </div>
                     <div className="rec-actions">
                       <button className="rec-load" disabled={actingId === u.id} onClick={() => resetUserPassword(u)}>🔑 改密碼</button>

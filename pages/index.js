@@ -587,9 +587,8 @@ export default function Home() {
                       </span>
                       <span className="rec-date">{u.role === 'admin' ? '管理員' : '業務員'}</span>
                     </div>
-                    <div className="rec-meta" style={{ fontSize: 12, lineHeight: 1.7 }}>
-                      🔢 登入 {u.login_count || 0} 次<br />
-                      🕒 最後 {u.last_login_at ? new Date(u.last_login_at).toLocaleString('zh-HK') : '—'} &nbsp;·&nbsp; 🌐 IP {u.last_login_ip || '—'}
+                    <div className="rec-meta" style={{ fontSize: 12 }}>
+                      🔢 {u.login_count || 0} 次 &nbsp;·&nbsp; 🕒 {u.last_login_at ? new Date(u.last_login_at).toLocaleString('zh-HK') : '—'} &nbsp;·&nbsp; 🌐 {u.last_login_ip || '—'}
                     </div>
                     <div className="rec-actions">
                       <button className="rec-load" disabled={actingId === u.id} onClick={() => resetUserPassword(u)}>🔑 改密碼</button>

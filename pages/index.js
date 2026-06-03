@@ -33,6 +33,7 @@ export default function Home() {
   const [pending, setPending] = useState([]);
   const [users, setUsers] = useState([]);
   const [actingId, setActingId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const pageRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -127,18 +128,25 @@ export default function Home() {
   // 保存 / 載入 / 刪除
   const saveRecord = () => {
     if (!form.to.trim()) { alert('請先填寫「致 (To)」公司名稱再保存。'); return; }
-    const rec = {
-      id: Date.now(), to: form.to.trim(), attn: form.attn, date: form.date,
+    const data = {
+      to: form.to.trim(), attn: form.attn, date: form.date,
       fromName: form.from, fromPhone: form.phone, company: form.company,
       currency: form.currency, payment: form.payment, min: form.min, remarks: form.remarks,
       products: products.map((p) => ({ ...p })),
       by: user?.name || user?.username || '—', savedAt: new Date().toLocaleString('zh-HK'),
     };
     const all = JSON.parse(localStorage.getItem('qrecs') || '[]');
-    all.push(rec);
-    localStorage.setItem('qrecs', JSON.stringify(all));
+    let next;
+    if (editingId) {
+      // 編輯模式：更新原本那筆，不新建
+      next = all.map((r) => (r.id === editingId ? { ...r, ...data, id: editingId } : r));
+    } else {
+      next = [...all, { id: Date.now(), ...data }];
+    }
+    localStorage.setItem('qrecs', JSON.stringify(next));
     loadRecords();
-    alert('✅ 已保存：' + rec.to);
+    alert(editingId ? '✅ 已更新：' + data.to : '✅ 已保存：' + data.to);
+    setEditingId(null);
     setSection('records');
   };
 
@@ -151,6 +159,14 @@ export default function Home() {
       phone: r.fromPhone, remarks: r.remarks, currency: r.currency, payment: r.payment, min: r.min,
     });
     setProducts(r.products && r.products.length ? r.products.map((p) => ({ ...p })) : [{ item: '', size: '', qty: '', price: '' }]);
+    setEditingId(id);
+    setSection('quotation');
+  };
+
+  const newQuote = () => {
+    setForm({ company: 'wuming', to: '', attn: '', date: todayStr(), from: '羅志成', phone: SENDERS['羅志成'], remarks: '', currency: '人民幣含稅價', payment: '月結30天', min: '2' });
+    setProducts([{ item: '', size: '', qty: '', price: '' }]);
+    setEditingId(null);
     setSection('quotation');
   };
 
@@ -287,7 +303,7 @@ export default function Home() {
           <div className="section active">
             <div className="section-title">👋 歡迎，{user.name || user.username}</div>
             <div className="dash-grid">
-              <div className="dash-card" onClick={() => setSection('quotation')}>
+              <div className="dash-card" onClick={newQuote}>
                 <div className="icon">✍️</div><h3>生成新報價</h3><p>建立並列印新的報價單</p>
               </div>
               <div className="dash-card" onClick={() => setSection('records')}>

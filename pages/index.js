@@ -194,6 +194,8 @@ export default function Home() {
   const co = CO[form.company];
   const paymentText = `${form.currency}，${form.payment}`;
   const pastCompanies = [...new Set((records || []).map((r) => r.to).filter(Boolean))];
+  const pastAttns = [...new Set((records || []).map((r) => r.attn).filter(Boolean))];
+  const pastItems = [...new Set((records || []).flatMap((r) => (r.products || []).map((p) => p.item)).filter(Boolean))];
   const terms = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const filtered = terms.length === 0
     ? records
@@ -356,7 +358,10 @@ export default function Home() {
                 </div>
                 <div className="field-g">
                   <label>收件人 (Attn)</label>
-                  <input type="text" placeholder="收件人姓名" value={form.attn} onChange={(e) => setField('attn', e.target.value)} />
+                  <input type="text" placeholder="收件人姓名" list="past-attns" autoComplete="off" value={form.attn} onChange={(e) => setField('attn', e.target.value)} />
+                  <datalist id="past-attns">
+                    {pastAttns.map((c) => <option key={c} value={c} />)}
+                  </datalist>
                 </div>
               </div>
               <div className="form-row" style={{ marginTop: 10 }}>
@@ -387,7 +392,7 @@ export default function Home() {
                     <div className="prod-fields">
                       <div className="field-g prod-name">
                         <label>品名</label>
-                        <input type="text" placeholder="產品名稱" value={p.item} onChange={(e) => updProduct(i, 'item', e.target.value)} />
+                        <input type="text" placeholder="產品名稱" list="past-items" autoComplete="off" value={p.item} onChange={(e) => updProduct(i, 'item', e.target.value)} />
                       </div>
                       <div className="field-g"><label>尺寸</label><input type="text" placeholder="如 787×1092" value={p.size} onChange={(e) => updProduct(i, 'size', e.target.value)} /></div>
                       <div className="field-g"><label>數量</label><input type="text" placeholder="如 5噸" value={p.qty} onChange={(e) => updProduct(i, 'qty', e.target.value)} /></div>
@@ -398,6 +403,9 @@ export default function Home() {
                 ))}
               </div>
               <button className="btn-add-prod" onClick={addProduct}>➕ 新增產品項目</button>
+              <datalist id="past-items">
+                {pastItems.map((it) => <option key={it} value={it} />)}
+              </datalist>
             </div>
 
             <div className="panel">

@@ -126,7 +126,7 @@ export default function Home() {
   }, [scalePreview]);
 
   // 保存 / 載入 / 刪除
-  const saveRecord = () => {
+  const saveRecord = (mode) => {
     if (!form.to.trim()) { alert('請先填寫「致 (To)」公司名稱再保存。'); return; }
     const data = {
       to: form.to.trim(), attn: form.attn, date: form.date,
@@ -136,16 +136,19 @@ export default function Home() {
       by: user?.name || user?.username || '—', savedAt: new Date().toLocaleString('zh-HK'),
     };
     const all = JSON.parse(localStorage.getItem('qrecs') || '[]');
-    let next;
-    if (editingId) {
-      // 編輯模式：更新原本那筆，不新建
+    let next, msg;
+    if (mode === 'update' && editingId) {
+      // 修正報價：在原報價上更新，不新建
       next = all.map((r) => (r.id === editingId ? { ...r, ...data, id: editingId } : r));
+      msg = '✅ 已修正原報價：' + data.to;
     } else {
+      // 新建報價
       next = [...all, { id: Date.now(), ...data }];
+      msg = '✅ 已新建報價：' + data.to;
     }
     localStorage.setItem('qrecs', JSON.stringify(next));
     loadRecords();
-    alert(editingId ? '✅ 已更新：' + data.to : '✅ 已保存：' + data.to);
+    alert(msg);
     setEditingId(null);
     setSection('records');
   };
@@ -424,7 +427,14 @@ export default function Home() {
                 </div>
               </div>
               <div className="action-row" style={{ marginTop: 16 }}>
-                <button className="btn-save" onClick={saveRecord}>💾 保存至紀錄</button>
+                {editingId ? (
+                  <>
+                    <button className="btn-save" onClick={() => saveRecord('update')}>✏️ 修正報價</button>
+                    <button className="btn-save" style={{ background: '#5c6bc0' }} onClick={() => saveRecord('new')}>➕ 另存新報價</button>
+                  </>
+                ) : (
+                  <button className="btn-save" onClick={() => saveRecord('new')}>💾 保存至紀錄</button>
+                )}
                 <button className="btn-print" onClick={doPrint}>🖨️ 列印 / PDF</button>
               </div>
             </div>

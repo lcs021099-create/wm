@@ -437,7 +437,10 @@ export default function Home() {
               </div>
             ) : (
               [...filtered].reverse().map((r) => {
-                const itemStr = (r.products || []).map((p) => p.item).filter(Boolean).join('、');
+                const itemStr = (r.products || [])
+                  .filter((p) => p.item || p.price)
+                  .map((p) => `${p.item || ''}${p.price ? ' ' + p.price : ''}`.trim())
+                  .join('、');
                 return (
                   <div className="rec-card" key={r.id}>
                     <div className="rec-top">
@@ -445,7 +448,7 @@ export default function Home() {
                       <span className="rec-date">{r.date || ''}</span>
                     </div>
                     <div className="rec-meta">收件: {r.attn || '—'} &nbsp;|&nbsp; 發件: {r.fromName || '—'} &nbsp;|&nbsp; 儲存: {r.by || '—'}</div>
-                    {itemStr ? <div className="rec-items">📦 {itemStr}</div> : null}
+                    {itemStr ? <div className="rec-items">📦 {itemStr}{r.currency ? `（${r.currency}）` : ''}</div> : null}
                     <div className="rec-actions">
                       <button className="rec-load" onClick={() => loadRecord(r.id)}>📂 載入編輯</button>
                       <button className="rec-del" onClick={() => deleteRecord(r.id)}>🗑</button>

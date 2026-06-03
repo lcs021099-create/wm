@@ -193,6 +193,7 @@ export default function Home() {
 
   const co = CO[form.company];
   const paymentText = `${form.currency}，${form.payment}`;
+  const pastCompanies = [...new Set((records || []).map((r) => r.to).filter(Boolean))];
   const terms = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const filtered = terms.length === 0
     ? records
@@ -348,7 +349,10 @@ export default function Home() {
                 </div>
                 <div className="field-g">
                   <label>致 (To) 客戶公司</label>
-                  <input type="text" placeholder="客戶公司名稱" value={form.to} onChange={(e) => setField('to', e.target.value)} />
+                  <input type="text" placeholder="客戶公司名稱" list="past-companies" autoComplete="off" value={form.to} onChange={(e) => setField('to', e.target.value)} />
+                  <datalist id="past-companies">
+                    {pastCompanies.map((c) => <option key={c} value={c} />)}
+                  </datalist>
                 </div>
                 <div className="field-g">
                   <label>收件人 (Attn)</label>

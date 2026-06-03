@@ -408,6 +408,7 @@ export default function Home() {
                     <option value="人民幣含稅價">人民幣含稅價</option>
                     <option value="人民幣不含稅價">人民幣不含稅價</option>
                     <option value="港幣">港幣</option>
+                    <option value="美金">美金</option>
                   </select>
                 </div>
                 <div className="field-g">

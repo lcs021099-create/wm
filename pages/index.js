@@ -193,13 +193,16 @@ export default function Home() {
 
   const co = CO[form.company];
   const paymentText = `${form.currency}，${form.payment}`;
-  const query = search.toLowerCase().trim();
-  const filtered = query
-    ? records.filter((r) => {
-        const items = (r.products || []).map((p) => p.item).join(' ').toLowerCase();
-        return r.to.toLowerCase().includes(query) || items.includes(query);
-      })
-    : records;
+  const terms = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const filtered = terms.length === 0
+    ? records
+    : records.filter((r) => {
+        const haystack = [
+          r.to, r.attn, r.fromName,
+          ...(r.products || []).map((p) => p.item),
+        ].filter(Boolean).join(' ').toLowerCase();
+        return terms.every((t) => haystack.includes(t));
+      });
 
   // A4 報價單內容（預覽與列印共用）
   const quoteBody = (
@@ -455,7 +458,7 @@ export default function Home() {
           <div className="section active">
             <div className="section-title">📋 報價紀錄</div>
             <div className="search-bar">
-              <input className="search-input" type="search" placeholder="🔍 搜尋公司名 或 品名…" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <input className="search-input" type="search" placeholder="🔍 搜尋公司名、品名（可組合，空格分隔）…" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             {filtered.length === 0 ? (
               <div className="empty">

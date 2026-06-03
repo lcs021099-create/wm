@@ -590,7 +590,7 @@ export default function Home() {
       </nav>
 
       {/* Print area（列印時才顯示，未縮放） */}
-      <div id="printArea"><div className="page">{quoteBody}</div></div>
+      <div id="printArea" style={{ display: 'none' }}><div className="page">{quoteBody}</div></div>
 
       <style jsx>{`
         .app { display: flex; min-height: 100vh; background: #f0f2f5; }

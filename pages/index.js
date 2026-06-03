@@ -31,7 +31,7 @@ export default function Home() {
   const [section, setSection] = useState('dashboard');
   const [form, setForm] = useState({
     company: 'wuming', to: '', attn: '', date: '', from: '羅志成', phone: SENDERS['羅志成'],
-    remarks: '', currency: '人民幣含稅價', payment: '月結30天', min: '2',
+    remarks: '', currency: '人民幣含稅價', payment: '月結30天', min: '2', internalNote: '',
   });
   const [products, setProducts] = useState([{ item: '', size: '', qty: '', price: '' }]);
   const [records, setRecords] = useState([]);
@@ -140,6 +140,7 @@ export default function Home() {
       to: form.to.trim(), attn: form.attn, date: form.date,
       fromName: form.from, fromPhone: form.phone, company: form.company,
       currency: form.currency, payment: form.payment, min: form.min, remarks: form.remarks,
+      internalNote: form.internalNote,
       products: products.map((p) => ({ ...p })),
       by: user?.name || user?.username || '—', savedAt: new Date().toLocaleString('zh-HK'),
     };
@@ -168,6 +169,7 @@ export default function Home() {
     setForm({
       company: r.company, to: r.to, attn: r.attn, date: r.date, from: r.fromName,
       phone: r.fromPhone, remarks: r.remarks, currency: r.currency, payment: r.payment, min: r.min,
+      internalNote: r.internalNote || '',
     });
     setProducts(r.products && r.products.length ? r.products.map((p) => ({ ...p })) : [{ item: '', size: '', qty: '', price: '' }]);
     setEditingId(id);
@@ -175,7 +177,7 @@ export default function Home() {
   };
 
   const newQuote = () => {
-    setForm({ company: 'wuming', to: '', attn: '', date: todayStr(), from: '羅志成', phone: SENDERS['羅志成'], remarks: '', currency: '人民幣含稅價', payment: '月結30天', min: '2' });
+    setForm({ company: 'wuming', to: '', attn: '', date: todayStr(), from: '羅志成', phone: SENDERS['羅志成'], remarks: '', currency: '人民幣含稅價', payment: '月結30天', min: '2', internalNote: '' });
     setProducts([{ item: '', size: '', qty: '', price: '' }]);
     setEditingId(null);
     setSection('quotation');
@@ -451,6 +453,12 @@ export default function Home() {
                   <input type="number" step="0.1" value={form.min} onChange={(e) => setField('min', e.target.value)} />
                 </div>
               </div>
+              <div className="form-row" style={{ marginTop: 10 }}>
+                <div className="field-g" style={{ gridColumn: '1/-1' }}>
+                  <label>🔒 公司內部備註（只供同事查看報價紀錄，不會出現在報價單／列印）</label>
+                  <textarea placeholder="例如：成本、議價空間、客戶背景…（客戶看不到）" value={form.internalNote} onChange={(e) => setField('internalNote', e.target.value)} style={{ background: '#fff8e1' }} />
+                </div>
+              </div>
               <div className="action-row" style={{ marginTop: 16 }}>
                 {editingId ? (
                   <>
@@ -500,6 +508,7 @@ export default function Home() {
                     </div>
                     <div className="rec-meta">收件: {r.attn || '—'} &nbsp;|&nbsp; 發件: {r.fromName || '—'} &nbsp;|&nbsp; 儲存: {r.by || '—'}</div>
                     {itemStr ? <div className="rec-items">📦 {itemStr}{r.currency ? `（${r.currency}）` : ''}</div> : null}
+                    {r.internalNote ? <div className="rec-items" style={{ color: '#e65100', fontStyle: 'normal', background: '#fff8e1', padding: '6px 10px', borderRadius: 6 }}>🔒 內部備註：{r.internalNote}</div> : null}
                     <div className="rec-actions">
                       <button className="rec-load" onClick={() => loadRecord(r.id)}>📂 載入編輯</button>
                       <button className="rec-del" onClick={() => deleteRecord(r.id)}>🗑</button>

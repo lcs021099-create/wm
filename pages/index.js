@@ -51,7 +51,7 @@ export default function Home() {
   const [palletFilter, setPalletFilter] = useState('');
   const [palletDetail, setPalletDetail] = useState(null);
   const [scanBarcode, setScanBarcode] = useState('');
-  const [scanForm, setScanForm] = useState({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' });
+  const [scanForm, setScanForm] = useState({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' });
   const [scanStep, setScanStep] = useState('scan'); // scan, form, done
   const [ocrLoading, setOcrLoading] = useState(false);
   const scannerRef = useRef(null);
@@ -433,7 +433,7 @@ export default function Home() {
               <div className="dash-card" onClick={() => { setSection('inventory'); loadPallets(); }}>
                 <div className="icon">📦</div><h3>庫存管理</h3><p>掃碼入庫、品質分級、出入庫</p>
               </div>
-              <div className="dash-card" onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); setSection('scan'); }}>
+              <div className="dash-card" onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' }); setSection('scan'); }}>
                 <div className="icon">📷</div><h3>掃碼入庫</h3><p>用手機相機掃標籤條碼</p>
               </div>
               <div className="dash-card" onClick={() => setSection('password')}>
@@ -721,7 +721,7 @@ export default function Home() {
           <div className="section active">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div className="section-title" style={{ marginBottom: 0 }}>📦 庫存管理</div>
-              <button className="btn-save" style={{ padding: '9px 16px', fontSize: 13, flex: 'none', width: 'auto' }} onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); setSection('scan'); }}>📷 掃碼入庫</button>
+              <button className="btn-save" style={{ padding: '9px 16px', fontSize: 13, flex: 'none', width: 'auto' }} onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' }); setSection('scan'); }}>📷 掃碼入庫</button>
             </div>
             {palletStats && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px,1fr))', gap: 8, marginBottom: 14 }}>
@@ -906,10 +906,6 @@ export default function Home() {
                   </div>
                   <div className="form-row" style={{ marginTop: 10 }}>
                     <div className="field-g"><label>供應商</label><input value={scanForm.supplier} onChange={e => setScanForm(f => ({ ...f, supplier: e.target.value }))} /></div>
-                    <div className="field-g"><label>產地</label><input placeholder="如 Made in Germany" value={scanForm.origin} onChange={e => setScanForm(f => ({ ...f, origin: e.target.value }))} /></div>
-                  </div>
-                  <div className="form-row" style={{ marginTop: 10 }}>
-                    <div className="field-g"><label>存放位置</label><input placeholder="如 A區-3排" value={scanForm.location} onChange={e => setScanForm(f => ({ ...f, location: e.target.value }))} /></div>
                   </div>
                 </div>
                 <div className="action-row" style={{ marginBottom: 20 }}>
@@ -926,7 +922,7 @@ export default function Home() {
                 <p style={{ fontSize: 18, fontWeight: 700, color: '#2e7d32' }}>入庫成功！</p>
                 <p style={{ fontSize: 14, color: '#999' }}>{scanForm.paper_type} · {scanForm.pallet_no}</p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 20 }}>
-                  <button className="btn-save" onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); }}>繼續掃碼</button>
+                  <button className="btn-save" onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' }); }}>繼續掃碼</button>
                   <button className="btn-print" onClick={() => { setSection('inventory'); loadPallets(); }}>返回庫存</button>
                 </div>
               </div>

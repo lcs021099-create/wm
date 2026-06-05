@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { authAPI, usersAPI, quotationsAPI } from '../lib/api';
+import { authAPI, usersAPI, quotationsAPI, palletsAPI } from '../lib/api';
 
 const CO = {
   wuming:   { zh: '東莞市無名紙業有限公司', en: 'DONGGUAN WUMING PAPER CO.,LTD', email: 'wuming@prostandard.com.hk', logo: '/logo.png' },
@@ -44,6 +44,16 @@ export default function Home() {
   const [editingId, setEditingId] = useState(null);
   const pageRef = useRef(null);
   const wrapRef = useRef(null);
+  // 庫存
+  const [pallets, setPallets] = useState([]);
+  const [palletStats, setPalletStats] = useState(null);
+  const [palletSearch, setPalletSearch] = useState('');
+  const [palletFilter, setPalletFilter] = useState('');
+  const [palletDetail, setPalletDetail] = useState(null);
+  const [scanBarcode, setScanBarcode] = useState('');
+  const [scanForm, setScanForm] = useState({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' });
+  const [scanStep, setScanStep] = useState('scan'); // scan, form, done
+  const scannerRef = useRef(null);
 
   // 登入檢查 + 初始化
   useEffect(() => {
@@ -63,6 +73,15 @@ export default function Home() {
   const loadRecords = () => quotationsAPI.list().then((r) => setRecords(r.data || [])).catch(() => {});
   const loadPending = () => usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
   const loadUsers = () => usersAPI.list().then((r) => setUsers(r.data)).catch(() => {});
+  const loadPallets = async () => {
+    try {
+      const [s, p] = await Promise.all([palletsAPI.stats(), palletsAPI.list({ search: palletSearch, status: palletFilter || undefined })]);
+      setPalletStats(s.data); setPallets(p.data);
+    } catch {}
+  };
+  const loadPalletDetail = async (id) => {
+    try { const r = await palletsAPI.get(id); setPalletDetail(r.data); } catch {}
+  };
 
   // 修改密碼
   const changePassword = async () => {
@@ -310,9 +329,7 @@ export default function Home() {
           {navLink('dashboard', '🏠', '儀表板')}
           {navLink('quotation', '✍️', '生成報價')}
           {navLink('records', '📋', '報價紀錄')}
-          <button type="button" className="menu-btn" onClick={() => router.push('/inventory')}>
-            <span className="mb-icon">📦</span><span className="mb-text">庫存管理</span>
-          </button>
+          {navLink('inventory', '📦', '庫存管理')}
           {navLink('password', '🔑', '修改密碼')}
           {user.role === 'admin' && navLink('users', '👥', `用戶管理${pending.length ? ` (${pending.length})` : ''}`)}
         </div>
@@ -335,10 +352,10 @@ export default function Home() {
               <div className="dash-card">
                 <div className="icon">📊</div><h3>{records.length} 份報價</h3><p>系統內共有報價單</p>
               </div>
-              <div className="dash-card" onClick={() => router.push('/inventory')}>
+              <div className="dash-card" onClick={() => { setSection('inventory'); loadPallets(); }}>
                 <div className="icon">📦</div><h3>庫存管理</h3><p>掃碼入庫、品質分級、出入庫</p>
               </div>
-              <div className="dash-card" onClick={() => router.push('/inventory/scan')}>
+              <div className="dash-card" onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); setSection('scan'); }}>
                 <div className="icon">📷</div><h3>掃碼入庫</h3><p>用手機相機掃標籤條碼</p>
               </div>
               <div className="dash-card" onClick={() => setSection('password')}>
@@ -620,13 +637,210 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* INVENTORY */}
+        {section === 'inventory' && (
+          <div className="section active">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div className="section-title" style={{ marginBottom: 0 }}>📦 庫存管理</div>
+              <button className="btn-save" style={{ padding: '9px 16px', fontSize: 13 }} onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); setSection('scan'); }}>📷 掃碼入庫</button>
+            </div>
+            {palletStats && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px,1fr))', gap: 8, marginBottom: 14 }}>
+                {[{ l: '在庫', v: palletStats.inStock, c: '#667eea' }, { l: 'A 優良', v: palletStats.gradeA, c: '#2e7d32' }, { l: 'B 正常', v: palletStats.gradeB, c: '#d4851a' }, { l: 'C 次品', v: palletStats.gradeC, c: '#e53935' }, { l: '未分級', v: palletStats.ungraded, c: '#999' }].map(s => (
+                  <div key={s.l} className="panel" style={{ textAlign: 'center', padding: '12px 8px', marginBottom: 0 }}>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: s.c }}>{s.v}</div>
+                    <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="search-bar">
+              <input className="search-input" type="search" placeholder="🔍 搜尋板號、紙種、批次碼…" value={palletSearch} onChange={e => setPalletSearch(e.target.value)} onKeyUp={() => loadPallets()} />
+            </div>
+            <div style={{ display: 'flex', gap: 2, background: '#f1f3f5', borderRadius: 6, padding: 3, marginBottom: 14 }}>
+              {[['', '全部'], ['in_stock', '在庫'], ['out', '已出庫']].map(([k, l]) => (
+                <button key={k} onClick={() => { setPalletFilter(k); setTimeout(loadPallets, 0); }}
+                  style={{ flex: 1, padding: '7px 4px', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 500, cursor: 'pointer', background: palletFilter === k ? '#fff' : 'none', color: palletFilter === k ? '#667eea' : '#999' }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+            {pallets.length === 0 ? (
+              <div className="empty">暫無庫存記錄<br /><span style={{ fontSize: 13, color: '#ddd' }}>點擊「掃碼入庫」開始新增</span></div>
+            ) : (
+              pallets.map(p => (
+                <div className="rec-card" key={p.id} onClick={() => { loadPalletDetail(p.id); setSection('palletDetail'); }} style={{ cursor: 'pointer' }}>
+                  <div className="rec-top">
+                    <span className="rec-co">{p.paper_type || '未知紙種'}</span>
+                    <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600, color: p.quality_grade === 'A' ? '#2e7d32' : p.quality_grade === 'B' ? '#d4851a' : p.quality_grade === 'C' ? '#e53935' : '#999', background: p.quality_grade === 'A' ? '#e8f5ed' : p.quality_grade === 'B' ? '#fef6e8' : p.quality_grade === 'C' ? '#fdecea' : '#f5f5f5' }}>
+                      {p.quality_grade ? p.quality_grade : '未分級'}
+                    </span>
+                  </div>
+                  <div className="rec-meta">{p.pallet_no || '—'} · {p.format_size || '—'} · {p.weight ? p.weight + 'kg' : ''}</div>
+                  <div className="rec-items">{p.batch_code || ''} {p.commission_no ? `#${p.commission_no}` : ''} · {p.status === 'in_stock' ? '🟢 在庫' : '⚪ 已出庫'}</div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* PALLET DETAIL */}
+        {section === 'palletDetail' && palletDetail && (
+          <div className="section active">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <button onClick={() => { setSection('inventory'); loadPallets(); }} style={{ padding: '6px 12px', border: '1.5px solid #e0e0e0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 16 }}>&larr;</button>
+              <div className="section-title" style={{ marginBottom: 0 }}>板詳情</div>
+              <span style={{ marginLeft: 'auto', fontSize: 12, padding: '3px 10px', borderRadius: 20, color: palletDetail.status === 'in_stock' ? '#667eea' : '#999', background: palletDetail.status === 'in_stock' ? '#eef0ff' : '#f5f5f5' }}>{palletDetail.status === 'in_stock' ? '在庫' : '已出庫'}</span>
+            </div>
+            <div className="panel" style={{ background: palletDetail.quality_grade === 'A' ? '#e8f5ed' : palletDetail.quality_grade === 'B' ? '#fef6e8' : palletDetail.quality_grade === 'C' ? '#fdecea' : '#f8f9ff' }}>
+              <div style={{ fontSize: 18, fontWeight: 700 }}>{palletDetail.paper_type || '未知紙種'}</div>
+              <div style={{ fontSize: 14, marginTop: 4 }}>{palletDetail.quality_grade ? `品質等級: ${palletDetail.quality_grade}` : '未分級'} {palletDetail.graded_by ? ` · 由 ${palletDetail.graded_by} 評定` : ''}</div>
+            </div>
+            <div className="panel">
+              <h3>標籤資料</h3>
+              {[['板號', palletDetail.pallet_no], ['訂單編號', palletDetail.commission_no], ['批次碼', palletDetail.batch_code], ['尺寸', palletDetail.format_size], ['厚度', palletDetail.caliper ? palletDetail.caliper + ' mm' : ''], ['重量', palletDetail.weight ? palletDetail.weight + ' kg' : ''], ['張數', palletDetail.sheets ? palletDetail.sheets + ' pcs' : ''], ['供應商', palletDetail.supplier], ['客戶', palletDetail.customer], ['生產日期', palletDetail.production_date], ['出貨日期', palletDetail.shipment_date], ['產地', palletDetail.origin], ['位置', palletDetail.location], ['條碼', palletDetail.barcode]].filter(([,v]) => v).map(([k,v]) => (
+                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '0.5px solid #f1f3f5', fontSize: 13 }}><span style={{ color: '#999' }}>{k}</span><span style={{ fontWeight: 500 }}>{v}</span></div>
+              ))}
+            </div>
+            {palletDetail.status === 'in_stock' && (
+              <div className="panel">
+                <h3>品質分級</h3>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                  {['A', 'B', 'C'].map(g => {
+                    const on = palletDetail.quality_grade === g;
+                    const cc = { A: '#2e7d32', B: '#d4851a', C: '#e53935' }[g];
+                    return (
+                      <button key={g} onClick={async () => { try { await palletsAPI.update(palletDetail.id, { quality_grade: g }); await loadPalletDetail(palletDetail.id); } catch {} }}
+                        style={{ flex: 1, padding: '12px 8px', border: `2px solid ${on ? cc : '#e0e0e0'}`, borderRadius: 10, background: on ? (g === 'A' ? '#e8f5ed' : g === 'B' ? '#fef6e8' : '#fdecea') : '#fff', cursor: 'pointer', textAlign: 'center' }}>
+                        <div style={{ fontSize: 20, fontWeight: 700, color: on ? cc : '#ccc' }}>{g}</div>
+                        <div style={{ fontSize: 11, color: on ? cc : '#ccc' }}>{{ A: '優良', B: '正常', C: '次品' }[g]}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="action-row">
+                  <button className="btn-save" style={{ background: '#d4851a' }} onClick={async () => { if (!confirm('確定出庫？')) return; try { await palletsAPI.out(palletDetail.id, {}); await loadPalletDetail(palletDetail.id); alert('已出庫'); } catch(e) { alert('失敗'); } }}>📤 出庫</button>
+                  <button style={{ padding: '10px 16px', background: '#ffebee', color: '#e53935', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13 }} onClick={async () => { if (!confirm('確定刪除？')) return; try { await palletsAPI.delete(palletDetail.id); setSection('inventory'); loadPallets(); } catch {} }}>🗑 刪除</button>
+                </div>
+              </div>
+            )}
+            {palletDetail.transactions?.length > 0 && (
+              <div className="panel">
+                <h3>交易記錄</h3>
+                {palletDetail.transactions.map(t => (
+                  <div key={t.id} style={{ display: 'flex', gap: 8, padding: '6px 0', borderBottom: '0.5px solid #f1f3f5', fontSize: 12 }}>
+                    <span style={{ fontWeight: 600, color: t.type === 'in' ? '#2e7d32' : '#e53935' }}>{t.type === 'in' ? '入庫' : '出庫'}</span>
+                    <span style={{ color: '#999', flex: 1 }}>{t.notes}</span>
+                    <span style={{ color: '#ccc' }}>{t.created_at ? new Date(t.created_at).toLocaleString('zh-HK', { timeZone: 'Asia/Shanghai' }) : ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SCAN */}
+        {section === 'scan' && (
+          <div className="section active">
+            {scanStep === 'scan' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <button onClick={() => setSection('inventory')} style={{ padding: '6px 12px', border: '1.5px solid #e0e0e0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 16 }}>&larr;</button>
+                  <div className="section-title" style={{ marginBottom: 0 }}>📷 掃碼入庫</div>
+                </div>
+                <div className="panel">
+                  <div id="scanner-region" ref={scannerRef} style={{ width: '100%', borderRadius: 8, overflow: 'hidden', background: '#000', minHeight: 200 }} />
+                  <p style={{ textAlign: 'center', color: '#999', fontSize: 13, marginTop: 10 }}>📷 對準標籤上的條碼</p>
+                </div>
+                <div className="panel">
+                  <h3>或手動輸入</h3>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input className="search-input" style={{ flex: 1 }} placeholder="輸入條碼編號" value={scanBarcode} onChange={e => setScanBarcode(e.target.value)} />
+                    <button className="btn-save" style={{ padding: '10px 16px' }} onClick={() => { setScanForm(f => ({ ...f, barcode: scanBarcode })); setScanStep('form'); }}>確認</button>
+                  </div>
+                  <button onClick={() => { setScanForm(f => ({ ...f, barcode: '' })); setScanStep('form'); }} style={{ width: '100%', marginTop: 10, padding: 10, background: '#f6f7fb', border: '1.5px solid #e0e0e0', borderRadius: 8, cursor: 'pointer', fontSize: 13, color: '#666' }}>無條碼，直接手動錄入</button>
+                </div>
+              </>
+            )}
+            {scanStep === 'form' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <button onClick={() => setScanStep('scan')} style={{ padding: '6px 12px', border: '1.5px solid #e0e0e0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 16 }}>&larr;</button>
+                  <div className="section-title" style={{ marginBottom: 0 }}>填寫貨品資料</div>
+                </div>
+                {scanForm.barcode && <div className="panel" style={{ background: '#f6f7fb', padding: '10px 14px', fontSize: 13 }}>條碼: <strong>{scanForm.barcode}</strong></div>}
+                <div className="panel">
+                  <h3>品質分級</h3>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {['A', 'B', 'C'].map(g => {
+                      const on = scanForm.quality_grade === g;
+                      const cc = { A: '#2e7d32', B: '#d4851a', C: '#e53935' }[g];
+                      return (
+                        <button key={g} onClick={() => setScanForm(f => ({ ...f, quality_grade: on ? '' : g }))}
+                          style={{ flex: 1, padding: '14px 8px', border: `2px solid ${on ? cc : '#e0e0e0'}`, borderRadius: 10, background: on ? (g === 'A' ? '#e8f5ed' : g === 'B' ? '#fef6e8' : '#fdecea') : '#fff', cursor: 'pointer', textAlign: 'center' }}>
+                          <div style={{ fontSize: 24, fontWeight: 700, color: on ? cc : '#ccc' }}>{g}</div>
+                          <div style={{ fontSize: 11, color: on ? cc : '#ccc' }}>{{ A: '優良', B: '正常', C: '次品' }[g]}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="panel">
+                  <h3>標籤資料</h3>
+                  <div className="form-row">
+                    <div className="field-g"><label>紙種 *</label><input placeholder="如 PUZZLE BOARD BLUE PASTED" value={scanForm.paper_type} onChange={e => setScanForm(f => ({ ...f, paper_type: e.target.value }))} /></div>
+                    <div className="field-g"><label>板號 Pal.-Nr.</label><input placeholder="如 9014/26" value={scanForm.pallet_no} onChange={e => setScanForm(f => ({ ...f, pallet_no: e.target.value }))} /></div>
+                  </div>
+                  <div className="form-row" style={{ marginTop: 10 }}>
+                    <div className="field-g"><label>訂單 Com.-Nr.</label><input placeholder="如 349179/1" value={scanForm.commission_no} onChange={e => setScanForm(f => ({ ...f, commission_no: e.target.value }))} /></div>
+                    <div className="field-g"><label>批次碼 MaRu</label><input placeholder="如 24SK05005" value={scanForm.batch_code} onChange={e => setScanForm(f => ({ ...f, batch_code: e.target.value }))} /></div>
+                  </div>
+                  <div className="form-row" style={{ marginTop: 10 }}>
+                    <div className="field-g"><label>尺寸</label><input placeholder="如 78,7 x 109,2 SB" value={scanForm.format_size} onChange={e => setScanForm(f => ({ ...f, format_size: e.target.value }))} /></div>
+                    <div className="field-g"><label>厚度 mm</label><input placeholder="如 1,90" value={scanForm.caliper} onChange={e => setScanForm(f => ({ ...f, caliper: e.target.value }))} /></div>
+                  </div>
+                  <div className="form-row" style={{ marginTop: 10 }}>
+                    <div className="field-g"><label>重量 kg</label><input placeholder="如 565" value={scanForm.weight} onChange={e => setScanForm(f => ({ ...f, weight: e.target.value }))} /></div>
+                    <div className="field-g"><label>張數</label><input placeholder="如 500" value={scanForm.sheets} onChange={e => setScanForm(f => ({ ...f, sheets: e.target.value }))} /></div>
+                  </div>
+                  <div className="form-row" style={{ marginTop: 10 }}>
+                    <div className="field-g"><label>供應商</label><input value={scanForm.supplier} onChange={e => setScanForm(f => ({ ...f, supplier: e.target.value }))} /></div>
+                    <div className="field-g"><label>產地</label><input placeholder="如 Made in Germany" value={scanForm.origin} onChange={e => setScanForm(f => ({ ...f, origin: e.target.value }))} /></div>
+                  </div>
+                  <div className="form-row" style={{ marginTop: 10 }}>
+                    <div className="field-g"><label>存放位置</label><input placeholder="如 A區-3排" value={scanForm.location} onChange={e => setScanForm(f => ({ ...f, location: e.target.value }))} /></div>
+                  </div>
+                </div>
+                <div className="action-row" style={{ marginBottom: 20 }}>
+                  <button className="btn-save" style={{ flex: 1 }} onClick={async () => {
+                    if (!scanForm.paper_type?.trim()) { alert('請填寫紙種'); return; }
+                    try { await palletsAPI.create({ ...scanForm, barcode: scanForm.barcode || scanBarcode }); setScanStep('done'); } catch(e) { alert('儲存失敗: ' + (e.response?.data?.error || e.message)); }
+                  }}>確認入庫</button>
+                </div>
+              </>
+            )}
+            {scanStep === 'done' && (
+              <div style={{ textAlign: 'center', padding: '50px 20px' }}>
+                <div style={{ fontSize: 60, marginBottom: 16, color: '#2e7d32' }}>✓</div>
+                <p style={{ fontSize: 18, fontWeight: 700, color: '#2e7d32' }}>入庫成功！</p>
+                <p style={{ fontSize: 14, color: '#999' }}>{scanForm.paper_type} · {scanForm.pallet_no}</p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 20 }}>
+                  <button className="btn-save" onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); }}>繼續掃碼</button>
+                  <button className="btn-print" onClick={() => { setSection('inventory'); loadPallets(); }}>返回庫存</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* Mobile Bottom Nav */}
       <nav className="bottom-nav">
         {bnItem('dashboard', '🏠', '首頁')}
         {bnItem('quotation', '✍️', '報價')}
-        <button className="bn-item" onClick={() => router.push('/inventory')}><span className="bn-icon">📦</span><span className="bn-label">庫存</span></button>
+        {bnItem('inventory', '📦', '庫存')}
         {user.role === 'admin' ? bnItem('users', '👥', '管理') : bnItem('password', '🔑', '密碼')}
         <button className="bn-item" onClick={doLogout}><span className="bn-icon">🚪</span><span className="bn-label">登出</span></button>
       </nav>

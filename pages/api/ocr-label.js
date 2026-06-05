@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
 
   const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -42,8 +42,8 @@ Rules:
   );
 
   if (!resp.ok) {
-    const err = await resp.text();
-    return res.status(500).json({ error: 'Gemini error', detail: err });
+    const err = await resp.json().catch(() => ({}));
+    return res.status(500).json({ error: `Gemini error ${resp.status}: ${err?.error?.message || resp.statusText}` });
   }
 
   const data = await resp.json();

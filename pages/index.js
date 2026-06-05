@@ -69,6 +69,103 @@ export default function Home() {
     return { commission_no, pallet_no: pallet_prefix };
   };
 
+  const parseLabelText = (text) => {
+    const result = {};
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+    const findAfter = (keyRe, linesArr) => {
+      for (let i = 0; i < linesArr.length; i++) {
+        if (keyRe.test(linesArr[i])) {
+          const same = linesArr[i].replace(keyRe, '').trim();
+          if (same.length > 1) return same;
+          if (linesArr[i + 1]) return linesArr[i + 1];
+        }
+      }
+      return '';
+    };
+
+    // Com.-Nr.
+    for (let i = 0; i < lines.length; i++) {
+      if (/com[\.\-]+nr/i.test(lines[i])) {
+        const m = (lines[i] + ' ' + (lines[i + 1] || '')).match(/(\d{4,}\/\d+)/);
+        if (m) { result.commission_no = m[1]; break; }
+      }
+    }
+    // Pal.-Nr.
+    for (let i = 0; i < lines.length; i++) {
+      if (/pal[\.\-]+nr/i.test(lines[i])) {
+        for (let j = i; j < Math.min(i + 4, lines.length); j++) {
+          const m = lines[j].match(/(\d{4,}\/\d+)/);
+          if (m) { result.pallet_no = m[1]; break; }
+        }
+        if (result.pallet_no) break;
+      }
+    }
+    // Caliper
+    for (let i = 0; i < lines.length; i++) {
+      if (/caliper/i.test(lines[i])) {
+        const src = lines[i] + ' ' + (lines[i + 1] || '');
+        const m = src.match(/(\d[,\.]\d+)/);
+        if (m) { result.caliper = m[1]; break; }
+      }
+    }
+    // Weight
+    for (let i = 0; i < lines.length; i++) {
+      if (/weight/i.test(lines[i])) {
+        const src = lines[i] + ' ' + (lines[i + 1] || '');
+        const m = src.match(/\b(\d{3,4})\b/);
+        if (m) { result.weight = m[1]; break; }
+      }
+    }
+    // Sheets
+    for (let i = 0; i < lines.length; i++) {
+      if (/sheet/i.test(lines[i])) {
+        const src = lines[i] + ' ' + (lines[i + 1] || '');
+        const m = src.match(/\b(\d{3,5})\b/);
+        if (m) { result.sheets = m[1]; break; }
+      }
+    }
+    // Format size (contains "x")
+    for (const l of lines) {
+      const m = l.match(/(\d+[,\.]?\d*\s*[xX×]\s*\d+[,\.]?\d*(?:\s*[A-Z]+)?)/);
+      if (m) { result.format_size = m[1].trim(); break; }
+    }
+    // Paper type / Quality (all-caps line after Sorte/Quality)
+    for (let i = 0; i < lines.length; i++) {
+      if (/sorte|quality/i.test(lines[i])) {
+        const clean = lines[i].replace(/sorte|quality/ig, '').trim();
+        if (clean.length > 3) { result.paper_type = clean; break; }
+        for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+          if (/^[A-Z][A-Z\s]{4,}$/.test(lines[j])) { result.paper_type = lines[j].trim(); break; }
+        }
+        if (result.paper_type) break;
+      }
+    }
+    // MaRu / batch code
+    for (let i = 0; i < lines.length; i++) {
+      if (/maru/i.test(lines[i])) {
+        const src = lines[i] + ' ' + (lines[i + 1] || '');
+        const m = src.match(/([A-Z0-9]{6,})/);
+        if (m) { result.batch_code = m[1]; break; }
+      }
+    }
+    // Dates
+    const dateRe = /(\d{2}[.\-]\d{2}[.\-]\d{4})/;
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(dateRe);
+      if (m) {
+        const ctx = (lines[i - 1] || '') + lines[i];
+        if (!result.production_date && /production/i.test(ctx)) result.production_date = m[1];
+        else if (!result.shipment_date && /shipment/i.test(ctx)) result.shipment_date = m[1];
+      }
+    }
+    // Customer
+    const cust = findAfter(/customer|kunde/i, lines);
+    if (cust && !/caliper|weight|sheet/i.test(cust)) result.customer = cust;
+
+    return result;
+  };
+
   const handlePhotoOCR = async (e) => {
     const file = e.target.files[0];
     e.target.value = '';
@@ -79,24 +176,21 @@ export default function Home() {
       img.src = URL.createObjectURL(file);
       await new Promise((r) => { img.onload = r; });
       const canvas = document.createElement('canvas');
-      const max = 1400;
+      const max = 1600;
       const ratio = Math.min(max / img.width, max / img.height, 1);
       canvas.width = Math.round(img.width * ratio);
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      const base64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
 
-      const res = await fetch('/api/ocr-label', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('eng');
+      const { data: { text } } = await worker.recognize(canvas);
+      await worker.terminate();
 
+      const parsed = parseLabelText(text);
       setScanForm((f) => ({
         ...f,
-        ...Object.fromEntries(Object.entries(data).filter(([, v]) => v && String(v).trim())),
+        ...Object.fromEntries(Object.entries(parsed).filter(([, v]) => v && String(v).trim())),
         supplier: f.supplier || 'Smurfit Kappa',
       }));
       setScanStep('form');

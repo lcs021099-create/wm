@@ -23,7 +23,7 @@ export default function Layout({ children }) {
     { href: '/', icon: '🏠', label: '首頁' },
     { href: '/quotes', icon: '📄', label: '報價單' },
     { href: '/quotes/new', icon: '➕', label: '新增' },
-    { href: '/clients', icon: '👥', label: '客戶' },
+    { href: '/inventory', icon: '📦', label: '庫存' },
     { href: '/settings', icon: '⚙️', label: '設定' },
   ];
 

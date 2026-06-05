@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { authAPI, usersAPI } from '../lib/api';
+import { authAPI, usersAPI, quotationsAPI } from '../lib/api';
 
 const CO = {
   wuming:   { zh: '東莞市無名紙業有限公司', en: 'DONGGUAN WUMING PAPER CO.,LTD', email: 'wuming@prostandard.com.hk', logo: '/logo.png' },
@@ -53,14 +53,14 @@ export default function Home() {
     const parsed = u ? JSON.parse(u) : null;
     if (parsed) setUser(parsed);
     setForm((f) => ({ ...f, date: todayStr() }));
-    setRecords(JSON.parse(localStorage.getItem('qrecs') || '[]'));
+    quotationsAPI.list().then((r) => setRecords(r.data || [])).catch(() => {});
     if (parsed?.role === 'admin') {
       usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
       usersAPI.list().then((r) => setUsers(r.data)).catch(() => {});
     }
   }, []);
 
-  const loadRecords = () => setRecords(JSON.parse(localStorage.getItem('qrecs') || '[]'));
+  const loadRecords = () => quotationsAPI.list().then((r) => setRecords(r.data || [])).catch(() => {});
   const loadPending = () => usersAPI.pending().then((r) => setPending(r.data)).catch(() => {});
   const loadUsers = () => usersAPI.list().then((r) => setUsers(r.data)).catch(() => {});
 
@@ -134,7 +134,7 @@ export default function Home() {
   }, [scalePreview]);
 
   // 保存 / 載入 / 刪除
-  const saveRecord = (mode) => {
+  const saveRecord = async (mode) => {
     if (!form.to.trim()) { alert('請先填寫「致 (To)」公司名稱再保存。'); return; }
     const data = {
       to: form.to.trim(), attn: form.attn, date: form.date,
@@ -142,29 +142,26 @@ export default function Home() {
       currency: form.currency, payment: form.payment, min: form.min, remarks: form.remarks,
       internalNote: form.internalNote,
       products: products.map((p) => ({ ...p })),
-      by: user?.name || user?.username || '—', savedAt: new Date().toLocaleString('zh-HK'),
+      by: user?.name || user?.username || '—',
     };
-    const all = JSON.parse(localStorage.getItem('qrecs') || '[]');
-    let next, msg;
-    if (mode === 'update' && editingId) {
-      // 修正報價：在原報價上更新，不新建
-      next = all.map((r) => (r.id === editingId ? { ...r, ...data, id: editingId } : r));
-      msg = '✅ 已修正原報價：' + data.to;
-    } else {
-      // 新建報價
-      next = [...all, { id: Date.now(), ...data }];
-      msg = '✅ 已新建報價：' + data.to;
+    try {
+      if (mode === 'update' && editingId) {
+        await quotationsAPI.update(editingId, data);
+        alert('✅ 已修正原報價：' + data.to);
+      } else {
+        await quotationsAPI.create(data);
+        alert('✅ 已新建報價：' + data.to);
+      }
+      await loadRecords();
+      setEditingId(null);
+      setSection('records');
+    } catch (err) {
+      alert('❌ 儲存失敗：' + (err.response?.data?.error || err.message));
     }
-    localStorage.setItem('qrecs', JSON.stringify(next));
-    loadRecords();
-    alert(msg);
-    setEditingId(null);
-    setSection('records');
   };
 
   const loadRecord = (id) => {
-    const all = JSON.parse(localStorage.getItem('qrecs') || '[]');
-    const r = all.find((x) => x.id === id);
+    const r = records.find((x) => x.id === id);
     if (!r) return;
     setForm({
       company: r.company, to: r.to, attn: r.attn, date: r.date, from: r.fromName,
@@ -183,11 +180,14 @@ export default function Home() {
     setSection('quotation');
   };
 
-  const deleteRecord = (id) => {
+  const deleteRecord = async (id) => {
     if (!confirm('確定刪除此報價記錄？')) return;
-    const all = JSON.parse(localStorage.getItem('qrecs') || '[]').filter((r) => r.id !== id);
-    localStorage.setItem('qrecs', JSON.stringify(all));
-    loadRecords();
+    try {
+      await quotationsAPI.delete(id);
+      await loadRecords();
+    } catch (err) {
+      alert('❌ 刪除失敗：' + (err.response?.data?.error || err.message));
+    }
   };
 
   const doPrint = () => window.print();

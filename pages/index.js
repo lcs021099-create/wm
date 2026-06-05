@@ -643,7 +643,7 @@ export default function Home() {
           <div className="section active">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div className="section-title" style={{ marginBottom: 0 }}>📦 庫存管理</div>
-              <button className="btn-save" style={{ padding: '9px 16px', fontSize: 13 }} onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); setSection('scan'); }}>📷 掃碼入庫</button>
+              <button className="btn-save" style={{ padding: '9px 16px', fontSize: 13, width: 'auto', flexShrink: 0 }} onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' }); setSection('scan'); }}>📷 掃碼入庫</button>
             </div>
             {palletStats && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px,1fr))', gap: 8, marginBottom: 14 }}>

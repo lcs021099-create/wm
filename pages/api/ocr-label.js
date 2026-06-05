@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
 
-  const useModel = model || 'gemini-2.5-flash';
+  const useModel = model || 'gemini-flash-latest';
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${useModel}:generateContent?key=${apiKey}`,
     {
@@ -37,7 +37,7 @@ Rules:
         }],
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
           responseMimeType: 'application/json',
           responseSchema: {
             type: 'object',

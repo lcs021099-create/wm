@@ -50,10 +50,11 @@ Rules:
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
   try {
-    const match = text.match(/\{[\s\S]*\}/);
-    const json = JSON.parse(match ? match[0] : text);
+    const cleaned = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    const json = JSON.parse(match ? match[0] : cleaned);
     res.json(json);
   } catch {
-    res.status(500).json({ error: 'Parse failed', raw: text });
+    res.status(500).json({ error: 'Parse failed: ' + text.slice(0, 300) });
   }
 }

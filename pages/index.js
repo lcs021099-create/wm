@@ -174,16 +174,19 @@ export default function Home() {
       canvas.width = Math.round(img.width * ratio);
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const base64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
 
-      const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('eng');
-      const { data: { text } } = await worker.recognize(canvas);
-      await worker.terminate();
+      const res = await fetch('/api/ocr-label', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
 
-      const parsed = parseLabelText(text);
       setScanForm((f) => ({
         ...f,
-        ...Object.fromEntries(Object.entries(parsed).filter(([, v]) => v && String(v).trim())),
+        ...Object.fromEntries(Object.entries(data).filter(([, v]) => v && String(v).trim())),
         supplier: f.supplier || 'Smurfit Kappa',
       }));
       setScanStep('form');

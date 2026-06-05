@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
-
 export const config = {
   api: { bodyParser: { sizeLimit: '10mb' } },
 };
@@ -10,39 +8,52 @@ export default async function handler(req, res) {
   const { image, mediaType = 'image/jpeg' } = req.body;
   if (!image) return res.status(400).json({ error: 'No image' });
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
 
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 512,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: mediaType, data: image } },
-        {
-          type: 'text',
-          text: `Extract all fields from this Smurfit Kappa paper/board label. Return ONLY a valid JSON object, no explanation:
-{"customer":"","commission_no":"","pallet_no":"","caliper":"","weight":"","sheets":"","format_size":"","paper_type":"","batch_code":"","production_date":"","shipment_date":"","origin":""}
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: mediaType, data: image } },
+            { text: `You are reading a Smurfit Kappa paper/board pallet label. Extract ALL visible fields and return ONLY a valid JSON object:
+{"customer":"","commission_no":"","pallet_no":"","caliper":"","weight":"","sheets":"","format_size":"","paper_type":"","batch_code":"","production_date":"","shipment_date":""}
 
 Rules:
-- commission_no: the Com.-Nr. field, keep the slash format e.g. "349179/1"
-- pallet_no: the Pal.-Nr. field, keep the slash format e.g. "9014/26"
-- batch_code: the MaRu field
-- paper_type: the Sorte/Quality field
-- production_date and shipment_date: keep as printed e.g. "03.07.2024"
-- origin: the "Made in ..." text e.g. "Germany"
-- Leave field empty string if not found`
-        }
-      ]
-    }]
-  });
+- commission_no: Com.-Nr. field, keep slash format e.g. "349179/1"
+- pallet_no: Pal.-Nr. field, keep slash format e.g. "9014/26"
+- batch_code: MaRu field
+- paper_type: Sorte/Quality field (full name)
+- caliper: Caliper (mm) value only
+- weight: Weight (kg) number only
+- sheets: Sheet (pcs) number only
+- production_date / shipment_date: as printed e.g. "03.07.2024"
+- Empty string for missing fields
+- Return ONLY the JSON, no markdown, no explanation` }
+          ]
+        }],
+        generationConfig: { temperature: 0, maxOutputTokens: 512 },
+      }),
+    }
+  );
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    return res.status(500).json({ error: 'Gemini error', detail: err });
+  }
+
+  const data = await resp.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
   try {
-    const text = response.content[0].text.trim();
     const match = text.match(/\{[\s\S]*\}/);
     const json = JSON.parse(match ? match[0] : text);
     res.json(json);
   } catch {
-    res.status(500).json({ error: 'Parse failed', raw: response.content[0].text });
+    res.status(500).json({ error: 'Parse failed', raw: text });
   }
 }

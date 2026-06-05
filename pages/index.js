@@ -73,96 +73,88 @@ export default function Home() {
   const parseLabelText = (text) => {
     const result = {};
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const full = text;
 
-    const findAfter = (keyRe, linesArr) => {
-      for (let i = 0; i < linesArr.length; i++) {
-        if (keyRe.test(linesArr[i])) {
-          const same = linesArr[i].replace(keyRe, '').trim();
-          if (same.length > 1) return same;
-          if (linesArr[i + 1]) return linesArr[i + 1];
+    // 搜尋全文的 helper
+    const find = (re) => { const m = full.match(re); return m ? m[1].trim() : ''; };
+
+    // Com.-Nr.: 349179/1 格式（6位/1-2位）
+    result.commission_no = find(/com[\.\-]+nr\.?\s*[:\s]*([0-9]{5,6}\/[0-9]{1,2})/i)
+      || find(/\b([0-9]{6}\/[0-9]{1,2})\b/);
+
+    // Pal.-Nr.: 9014/26 格式（4位/2位）
+    result.pallet_no = find(/pal[\.\-]+nr\.?\s*[:\s]*([0-9]{3,5}\/[0-9]{2})/i)
+      || find(/\b([0-9]{4}\/[0-9]{2})\b/);
+
+    // Caliper: 小數如 1,90 或 1.90
+    result.caliper = find(/caliper[^\n]*?([1-9][,\.][0-9]{2})/i)
+      || find(/\b([1-4][,\.][0-9]{2})\b/); // 合理厚度範圍 1.xx ~ 4.xx
+
+    // Weight: 逐行搜尋，去掉 X/Y 格式避免誤抓板號
+    result.weight = (() => {
+      for (let i = 0; i < lines.length; i++) {
+        if (/weight/i.test(lines[i])) {
+          for (let j = i; j < Math.min(i + 4, lines.length); j++) {
+            const clean = lines[j].replace(/[0-9]+\/[0-9]+/g, '');
+            const m = clean.match(/\b([0-9]{2,4})\b/);
+            if (m) return m[1];
+          }
         }
       }
       return '';
-    };
+    })();
 
-    // Com.-Nr.
-    for (let i = 0; i < lines.length; i++) {
-      if (/com[\.\-]+nr/i.test(lines[i])) {
-        const m = (lines[i] + ' ' + (lines[i + 1] || '')).match(/(\d{4,}\/\d+)/);
-        if (m) { result.commission_no = m[1]; break; }
-      }
-    }
-    // Pal.-Nr.
-    for (let i = 0; i < lines.length; i++) {
-      if (/pal[\.\-]+nr/i.test(lines[i])) {
-        for (let j = i; j < Math.min(i + 4, lines.length); j++) {
-          const m = lines[j].match(/(\d{4,}\/\d+)/);
-          if (m) { result.pallet_no = m[1]; break; }
-        }
-        if (result.pallet_no) break;
-      }
-    }
-    // Caliper
-    for (let i = 0; i < lines.length; i++) {
-      if (/caliper/i.test(lines[i])) {
-        const src = lines[i] + ' ' + (lines[i + 1] || '');
-        const m = src.match(/(\d[,\.]\d+)/);
-        if (m) { result.caliper = m[1]; break; }
-      }
-    }
-    // Weight
-    for (let i = 0; i < lines.length; i++) {
-      if (/weight/i.test(lines[i])) {
-        const src = lines[i] + ' ' + (lines[i + 1] || '');
-        const m = src.match(/\b(\d{3,4})\b/);
-        if (m) { result.weight = m[1]; break; }
-      }
-    }
     // Sheets
-    for (let i = 0; i < lines.length; i++) {
-      if (/sheet/i.test(lines[i])) {
-        const src = lines[i] + ' ' + (lines[i + 1] || '');
-        const m = src.match(/\b(\d{3,5})\b/);
-        if (m) { result.sheets = m[1]; break; }
-      }
-    }
-    // Format size (contains "x")
-    for (const l of lines) {
-      const m = l.match(/(\d+[,\.]?\d*\s*[xX×]\s*\d+[,\.]?\d*(?:\s*[A-Z]+)?)/);
-      if (m) { result.format_size = m[1].trim(); break; }
-    }
-    // Paper type / Quality (all-caps line after Sorte/Quality)
+    result.sheets = find(/sheet[^\n]*?([0-9]{3,5})/i);
+
+    // Format size: 含 x 的尺寸
+    result.format_size = find(/([0-9]+[,\.]?[0-9]*\s*[xX×]\s*[0-9]+[,\.]?[0-9]*(?:\s*[A-Z]{1,3})?)/);
+
+    // Paper type: Sorte/Quality 後的文字
     for (let i = 0; i < lines.length; i++) {
       if (/sorte|quality/i.test(lines[i])) {
-        const clean = lines[i].replace(/sorte|quality/ig, '').trim();
-        if (clean.length > 3) { result.paper_type = clean; break; }
-        for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
-          if (/^[A-Z][A-Z\s]{4,}$/.test(lines[j])) { result.paper_type = lines[j].trim(); break; }
+        const same = lines[i].replace(/sorte|quality/ig, '').replace(/[:\-]/g, '').trim();
+        if (same.length > 3) { result.paper_type = same; break; }
+        for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+          const l = lines[j];
+          if (l.length > 4 && !/^\d+$/.test(l) && !/maru|production|shipment|made in/i.test(l)) {
+            result.paper_type = l; break;
+          }
         }
         if (result.paper_type) break;
       }
     }
-    // MaRu / batch code
-    for (let i = 0; i < lines.length; i++) {
-      if (/maru/i.test(lines[i])) {
-        const src = lines[i] + ' ' + (lines[i + 1] || '');
-        const m = src.match(/([A-Z0-9]{6,})/);
-        if (m) { result.batch_code = m[1]; break; }
-      }
+
+    // MaRu / 批次碼: 字母+數字組合如 24SK05005
+    result.batch_code = find(/maru[^\n]*?([A-Z0-9]{6,})/i)
+      || (() => {
+        for (let i = 0; i < lines.length; i++) {
+          if (/maru/i.test(lines[i])) {
+            const next = (lines[i + 1] || '');
+            const m = next.match(/([A-Z][A-Z0-9]{5,})/);
+            return m ? m[1] : '';
+          }
+        }
+        return '';
+      })();
+
+    // 日期: 用 context window 判斷 production / shipment
+    const allDates = [...full.matchAll(/(\d{2}[.\-]\d{2}[.\-]\d{4})/g)];
+    for (const m of allDates) {
+      const ctx = full.slice(Math.max(0, m.index - 40), m.index + 10);
+      if (!result.production_date && /production/i.test(ctx)) result.production_date = m[1];
+      else if (!result.shipment_date && /shipment/i.test(ctx)) result.shipment_date = m[1];
     }
-    // Dates
-    const dateRe = /(\d{2}[.\-]\d{2}[.\-]\d{4})/;
-    for (let i = 0; i < lines.length; i++) {
-      const m = lines[i].match(dateRe);
-      if (m) {
-        const ctx = (lines[i - 1] || '') + lines[i];
-        if (!result.production_date && /production/i.test(ctx)) result.production_date = m[1];
-        else if (!result.shipment_date && /shipment/i.test(ctx)) result.shipment_date = m[1];
-      }
-    }
+
     // Customer
-    const cust = findAfter(/customer|kunde/i, lines);
-    if (cust && !/caliper|weight|sheet/i.test(cust)) result.customer = cust;
+    for (let i = 0; i < lines.length; i++) {
+      if (/customer|kunde/i.test(lines[i])) {
+        const same = lines[i].replace(/customer|kunde/ig, '').replace(/[:\-]/g, '').trim();
+        if (same.length > 2 && !/caliper|weight|sheet/i.test(same)) { result.customer = same; break; }
+        const next = lines[i + 1] || '';
+        if (next.length > 2 && !/caliper|weight|sheet/i.test(next)) { result.customer = next; break; }
+      }
+    }
 
     return result;
   };

@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
 
   const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -20,8 +20,7 @@ export default async function handler(req, res) {
         contents: [{
           parts: [
             { inline_data: { mime_type: mediaType, data: image } },
-            { text: `You are reading a Smurfit Kappa paper/board pallet label. Extract ALL visible fields and return ONLY a valid JSON object:
-{"customer":"","commission_no":"","pallet_no":"","caliper":"","weight":"","sheets":"","format_size":"","paper_type":"","batch_code":"","production_date":"","shipment_date":""}
+            { text: `You are reading a Smurfit Kappa paper/board pallet label. Extract ALL visible fields.
 
 Rules:
 - commission_no: Com.-Nr. field, keep slash format e.g. "349179/1"
@@ -32,11 +31,30 @@ Rules:
 - weight: Weight (kg) number only
 - sheets: Sheet (pcs) number only
 - production_date / shipment_date: as printed e.g. "03.07.2024"
-- Empty string for missing fields
-- Return ONLY the JSON, no markdown, no explanation` }
+- Empty string for missing fields` }
           ]
         }],
-        generationConfig: { temperature: 0, maxOutputTokens: 512 },
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 1024,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string' },
+              commission_no: { type: 'string' },
+              pallet_no: { type: 'string' },
+              caliper: { type: 'string' },
+              weight: { type: 'string' },
+              sheets: { type: 'string' },
+              format_size: { type: 'string' },
+              paper_type: { type: 'string' },
+              batch_code: { type: 'string' },
+              production_date: { type: 'string' },
+              shipment_date: { type: 'string' },
+            },
+          },
+        },
       }),
     }
   );

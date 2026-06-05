@@ -310,6 +310,9 @@ export default function Home() {
           {navLink('dashboard', '🏠', '儀表板')}
           {navLink('quotation', '✍️', '生成報價')}
           {navLink('records', '📋', '報價紀錄')}
+          <button type="button" className="menu-btn" onClick={() => router.push('/inventory')}>
+            <span className="mb-icon">📦</span><span className="mb-text">庫存管理</span>
+          </button>
           {navLink('password', '🔑', '修改密碼')}
           {user.role === 'admin' && navLink('users', '👥', `用戶管理${pending.length ? ` (${pending.length})` : ''}`)}
         </div>
@@ -331,6 +334,12 @@ export default function Home() {
               </div>
               <div className="dash-card">
                 <div className="icon">📊</div><h3>{records.length} 份報價</h3><p>系統內共有報價單</p>
+              </div>
+              <div className="dash-card" onClick={() => router.push('/inventory')}>
+                <div className="icon">📦</div><h3>庫存管理</h3><p>掃碼入庫、品質分級、出入庫</p>
+              </div>
+              <div className="dash-card" onClick={() => router.push('/inventory/scan')}>
+                <div className="icon">📷</div><h3>掃碼入庫</h3><p>用手機相機掃標籤條碼</p>
               </div>
               <div className="dash-card" onClick={() => setSection('password')}>
                 <div className="icon">🔑</div><h3>修改密碼</h3><p>更改你的登入密碼</p>
@@ -617,7 +626,7 @@ export default function Home() {
       <nav className="bottom-nav">
         {bnItem('dashboard', '🏠', '首頁')}
         {bnItem('quotation', '✍️', '報價')}
-        {bnItem('records', '📋', '紀錄')}
+        <button className="bn-item" onClick={() => router.push('/inventory')}><span className="bn-icon">📦</span><span className="bn-label">庫存</span></button>
         {user.role === 'admin' ? bnItem('users', '👥', '管理') : bnItem('password', '🔑', '密碼')}
         <button className="bn-item" onClick={doLogout}><span className="bn-icon">🚪</span><span className="bn-label">登出</span></button>
       </nav>

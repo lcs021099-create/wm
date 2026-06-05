@@ -53,7 +53,59 @@ export default function Home() {
   const [scanBarcode, setScanBarcode] = useState('');
   const [scanForm, setScanForm] = useState({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', origin: '', quality_grade: '', quality_notes: '', location: '' });
   const [scanStep, setScanStep] = useState('scan'); // scan, form, done
+  const [ocrLoading, setOcrLoading] = useState(false);
   const scannerRef = useRef(null);
+  const photoInputRef = useRef(null);
+
+  // 從條碼解析 commission_no / pallet_no
+  const parseBarcodeFields = (barcode) => {
+    const s = barcode.replace(/\D/g, '');
+    if (s.length < 8) return {};
+    const raw = s.slice(0, 8); // e.g. "34917901"
+    const base = raw.slice(0, 6);  // "349179"
+    const item = parseInt(raw.slice(6, 8), 10); // 01 → 1
+    const commission_no = `${base}/${item}`;
+    const pallet_prefix = s.slice(8); // "9014"
+    return { commission_no, pallet_no: pallet_prefix };
+  };
+
+  const handlePhotoOCR = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    setOcrLoading(true);
+    try {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise((r) => { img.onload = r; });
+      const canvas = document.createElement('canvas');
+      const max = 1400;
+      const ratio = Math.min(max / img.width, max / img.height, 1);
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const base64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
+
+      const res = await fetch('/api/ocr-label', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setScanForm((f) => ({
+        ...f,
+        ...Object.fromEntries(Object.entries(data).filter(([, v]) => v && String(v).trim())),
+        supplier: f.supplier || 'Smurfit Kappa',
+      }));
+      setScanStep('form');
+    } catch (err) {
+      alert('識別失敗：' + err.message);
+    } finally {
+      setOcrLoading(false);
+    }
+  };
 
   // 登入檢查 + 初始化
   useEffect(() => {
@@ -147,6 +199,32 @@ export default function Home() {
   }, []);
 
   useEffect(() => { scalePreview(); }, [section, products, form, scalePreview]);
+
+  // 條碼掃描器初始化
+  useEffect(() => {
+    if (section !== 'scan' || scanStep !== 'scan') return;
+    let scanner;
+    const init = async () => {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      scanner = new Html5Qrcode('scanner-region');
+      try {
+        await scanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 280, height: 120 } },
+          (decodedText) => {
+            scanner.stop().catch(() => {});
+            const parsed = parseBarcodeFields(decodedText);
+            setScanBarcode(decodedText);
+            setScanForm((f) => ({ ...f, barcode: decodedText, ...parsed }));
+            setScanStep('form');
+          },
+          () => {}
+        );
+      } catch {}
+    };
+    init();
+    return () => { if (scanner) scanner.stop().catch(() => {}); };
+  }, [section, scanStep]); // eslint-disable-line
   useEffect(() => {
     window.addEventListener('resize', scalePreview);
     return () => window.removeEventListener('resize', scalePreview);
@@ -750,14 +828,29 @@ export default function Home() {
                   <div className="section-title" style={{ marginBottom: 0 }}>📷 掃碼入庫</div>
                 </div>
                 <div className="panel">
-                  <div id="scanner-region" ref={scannerRef} style={{ width: '100%', borderRadius: 8, overflow: 'hidden', background: '#000', minHeight: 200 }} />
-                  <p style={{ textAlign: 'center', color: '#999', fontSize: 13, marginTop: 10 }}>📷 對準標籤上的條碼</p>
+                  <div id="scanner-region" style={{ width: '100%', borderRadius: 8, overflow: 'hidden', background: '#000', minHeight: 200 }} />
+                  <p style={{ textAlign: 'center', color: '#999', fontSize: 13, marginTop: 10 }}>📷 對準標籤上的條碼掃描</p>
                 </div>
+
+                {/* 拍照 OCR */}
+                <input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handlePhotoOCR} />
+                <div className="panel" style={{ background: '#f0f7ff', border: '1.5px solid #90caf9' }}>
+                  <p style={{ margin: '0 0 10px', fontWeight: 600, fontSize: 14 }}>📸 拍照自動識別整張標籤</p>
+                  <p style={{ margin: '0 0 12px', fontSize: 12, color: '#666' }}>拍下標籤，AI 自動讀取所有欄位（紙種、訂單號、板號、重量等）</p>
+                  <button
+                    onClick={() => photoInputRef.current && photoInputRef.current.click()}
+                    disabled={ocrLoading}
+                    style={{ width: '100%', padding: '12px', background: ocrLoading ? '#b0bec5' : '#1a6fdb', color: '#fff', border: 'none', borderRadius: 8, cursor: ocrLoading ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}
+                  >
+                    {ocrLoading ? '⏳ 識別中，請稍候…' : '📸 拍照識別'}
+                  </button>
+                </div>
+
                 <div className="panel">
-                  <h3>或手動輸入</h3>
+                  <h3>或手動輸入條碼</h3>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input className="search-input" style={{ flex: 1 }} placeholder="輸入條碼編號" value={scanBarcode} onChange={e => setScanBarcode(e.target.value)} />
-                    <button className="btn-save" style={{ padding: '10px 16px' }} onClick={() => { setScanForm(f => ({ ...f, barcode: scanBarcode })); setScanStep('form'); }}>確認</button>
+                    <button className="btn-save" style={{ padding: '10px 16px', flex: 'none', width: 'auto' }} onClick={() => { const parsed = parseBarcodeFields(scanBarcode); setScanForm(f => ({ ...f, barcode: scanBarcode, ...parsed })); setScanStep('form'); }}>確認</button>
                   </div>
                   <button onClick={() => { setScanForm(f => ({ ...f, barcode: '' })); setScanStep('form'); }} style={{ width: '100%', marginTop: 10, padding: 10, background: '#f6f7fb', border: '1.5px solid #e0e0e0', borderRadius: 8, cursor: 'pointer', fontSize: 13, color: '#666' }}>無條碼，直接手動錄入</button>
                 </div>
@@ -769,7 +862,14 @@ export default function Home() {
                   <button onClick={() => setScanStep('scan')} style={{ padding: '6px 12px', border: '1.5px solid #e0e0e0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 16 }}>&larr;</button>
                   <div className="section-title" style={{ marginBottom: 0 }}>填寫貨品資料</div>
                 </div>
-                {scanForm.barcode && <div className="panel" style={{ background: '#f6f7fb', padding: '10px 14px', fontSize: 13 }}>條碼: <strong>{scanForm.barcode}</strong></div>}
+                {(scanForm.barcode || scanForm.paper_type) && (
+                  <div className="panel" style={{ background: '#f6f7fb', padding: '10px 14px', fontSize: 13, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {scanForm.barcode && <span>條碼: <strong>{scanForm.barcode}</strong></span>}
+                    {scanForm.commission_no && <span style={{ color: '#1a6fdb' }}>· 訂單: <strong>{scanForm.commission_no}</strong></span>}
+                    {scanForm.pallet_no && <span style={{ color: '#1a6fdb' }}>· 板號: <strong>{scanForm.pallet_no}</strong></span>}
+                    {scanForm.paper_type && !scanForm.barcode && <span style={{ color: '#2e7d32' }}>✓ 已由照片識別，請核對以下資料</span>}
+                  </div>
+                )}
                 <div className="panel">
                   <h3>品質分級</h3>
                   <div style={{ display: 'flex', gap: 8 }}>

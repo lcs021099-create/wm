@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
     "axios": "^1.6.2",
     "html5-qrcode": "^2.3.8",
     "next": "14.0.4",

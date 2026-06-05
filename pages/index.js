@@ -56,6 +56,7 @@ export default function Home() {
   const [ocrLoading, setOcrLoading] = useState(false);
   const scannerRef = useRef(null);
   const photoInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   // 從條碼解析 commission_no / pallet_no
   const parseBarcodeFields = (barcode) => {
@@ -926,18 +927,26 @@ export default function Home() {
                   <p style={{ textAlign: 'center', color: '#999', fontSize: 13, marginTop: 10 }}>📷 對準標籤上的條碼掃描</p>
                 </div>
 
-                {/* 拍照 OCR */}
+                {/* 拍照 / 圖庫 OCR */}
                 <input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handlePhotoOCR} />
+                <input ref={galleryInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoOCR} />
                 <div className="panel" style={{ background: '#f0f7ff', border: '1.5px solid #90caf9' }}>
-                  <p style={{ margin: '0 0 10px', fontWeight: 600, fontSize: 14 }}>📸 拍照自動識別整張標籤</p>
-                  <p style={{ margin: '0 0 12px', fontSize: 12, color: '#666' }}>拍下標籤，AI 自動讀取所有欄位（紙種、訂單號、板號、重量等）</p>
-                  <button
-                    onClick={() => photoInputRef.current && photoInputRef.current.click()}
-                    disabled={ocrLoading}
-                    style={{ width: '100%', padding: '12px', background: ocrLoading ? '#b0bec5' : '#1a6fdb', color: '#fff', border: 'none', borderRadius: 8, cursor: ocrLoading ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}
-                  >
-                    {ocrLoading ? '⏳ 識別中，請稍候…' : '📸 拍照識別'}
-                  </button>
+                  <p style={{ margin: '0 0 10px', fontWeight: 600, fontSize: 14 }}>自動識別標籤</p>
+                  <p style={{ margin: '0 0 12px', fontSize: 12, color: '#666' }}>自動讀取所有欄位（紙種、訂單號、板號、重量等）</p>
+                  {ocrLoading ? (
+                    <div style={{ textAlign: 'center', padding: '12px 0', color: '#1a6fdb', fontWeight: 600, fontSize: 14 }}>⏳ 識別中，請稍候…</div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => photoInputRef.current && photoInputRef.current.click()}
+                        style={{ flex: 1, padding: '12px', background: '#1a6fdb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+                        📸 拍照識別
+                      </button>
+                      <button onClick={() => galleryInputRef.current && galleryInputRef.current.click()}
+                        style={{ flex: 1, padding: '12px', background: '#fff', color: '#1a6fdb', border: '1.5px solid #1a6fdb', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+                        🖼️ 從圖庫選取
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="panel">

@@ -516,7 +516,7 @@ export default function Home() {
               <div className="dash-card" onClick={() => { setSection('inventory'); loadPallets(); }}>
                 <div className="icon">📦</div><h3>庫存管理</h3><p>掃碼入庫、品質分級、出入庫</p>
               </div>
-              <div className="dash-card" onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' }); setSection('scan'); }}>
+              <div className="dash-card" onClick={() => { setScanStep('photos'); setPendingPhotos([]); setProcessResults([]); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' }); setSection('scan'); }}>
                 <div className="icon">📷</div><h3>掃碼入庫</h3><p>用手機相機掃標籤條碼</p>
               </div>
               <div className="dash-card" onClick={() => setSection('password')}>
@@ -804,7 +804,7 @@ export default function Home() {
           <div className="section active">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div className="section-title" style={{ marginBottom: 0 }}>📦 庫存管理</div>
-              <button className="btn-save" style={{ padding: '9px 16px', fontSize: 13, flex: 'none', width: 'auto' }} onClick={() => { setScanStep('scan'); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' }); setSection('scan'); }}>📷 掃碼入庫</button>
+              <button className="btn-save" style={{ padding: '9px 16px', fontSize: 13, flex: 'none', width: 'auto' }} onClick={() => { setScanStep('photos'); setPendingPhotos([]); setProcessResults([]); setScanBarcode(''); setScanForm({ supplier: 'Smurfit Kappa', customer: '', commission_no: '', pallet_no: '', format_size: '', paper_type: '', batch_code: '', caliper: '', weight: '', sheets: '', production_date: '', shipment_date: '', quality_grade: '', quality_notes: '' }); setSection('scan'); }}>📷 掃碼入庫</button>
             </div>
             {palletStats && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px,1fr))', gap: 8, marginBottom: 14 }}>

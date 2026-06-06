@@ -41,7 +41,9 @@ Rules:
     }],
     generationConfig: {
       temperature: 0,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 512,
+      // 關閉思考（thinking）→ 識別速度約快 2.5 倍，準確度不變
+      thinkingConfig: { thinkingBudget: 0 },
       responseMimeType: 'application/json',
       responseSchema: {
         type: 'object',

@@ -46,10 +46,13 @@ export default function ScanPage() {
   const handleBatchOCR = async () => {
     if (!pendingPhotos.length) return;
     setOcrLoading(true);
-    setProgress({ current: 0, total: pendingPhotos.length });
-    const res = [];
-    for (let i = 0; i < pendingPhotos.length; i++) {
-      setProgress({ current: i + 1, total: pendingPhotos.length });
+    const total = pendingPhotos.length;
+    setProgress({ current: 0, total });
+    const res = new Array(total);
+    let done = 0;
+    const CONCURRENCY = 4;
+
+    const processOne = async (i) => {
       try {
         const r = await fetch('/api/ocr-label', {
           method: 'POST',
@@ -59,11 +62,19 @@ export default function ScanPage() {
         const data = await r.json();
         if (data.error) throw new Error(data.error);
         await palletsAPI.create({ ...data, supplier: data.supplier || 'Smurfit Kappa' });
-        res.push({ success: true, data });
+        res[i] = { success: true, data };
       } catch (err) {
-        res.push({ success: false, error: err.message });
+        res[i] = { success: false, error: err.message };
+      } finally {
+        done += 1;
+        setProgress({ current: done, total });
       }
-    }
+    };
+
+    let next = 0;
+    const worker = async () => { while (next < total) { const i = next++; await processOne(i); } };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, total) }, worker));
+
     setResults(res);
     setOcrLoading(false);
     setStep('done');

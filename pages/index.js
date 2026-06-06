@@ -187,14 +187,17 @@ export default function Home() {
     setPendingPhotos((p) => [...p, ...compressed]);
   };
 
-  // 批量 OCR 並自動入庫
+  // 批量 OCR 並自動入庫（並行處理，最多同時 4 張，加快速度）
   const handleBatchOCR = async () => {
     if (!pendingPhotos.length) return;
     setOcrLoading(true);
-    setProcessProgress({ current: 0, total: pendingPhotos.length });
-    const results = [];
-    for (let i = 0; i < pendingPhotos.length; i++) {
-      setProcessProgress({ current: i + 1, total: pendingPhotos.length });
+    const total = pendingPhotos.length;
+    setProcessProgress({ current: 0, total });
+    const results = new Array(total);
+    let done = 0;
+    const CONCURRENCY = 4;
+
+    const processOne = async (i) => {
       try {
         const res = await fetch('/api/ocr-label', {
           method: 'POST',
@@ -204,11 +207,20 @@ export default function Home() {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         await palletsAPI.create({ ...data, supplier: data.supplier || 'Smurfit Kappa' });
-        results.push({ success: true, data });
+        results[i] = { success: true, data };
       } catch (err) {
-        results.push({ success: false, error: err.message });
+        results[i] = { success: false, error: err.message };
+      } finally {
+        done += 1;
+        setProcessProgress({ current: done, total });
       }
-    }
+    };
+
+    // 以 CONCURRENCY 為上限的工作池
+    let next = 0;
+    const worker = async () => { while (next < total) { const i = next++; await processOne(i); } };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, total) }, worker));
+
     setProcessResults(results);
     setOcrLoading(false);
     setScanStep('done');

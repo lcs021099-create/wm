@@ -3,9 +3,18 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  try {
+    return await ocrHandler(req, res);
+  } catch (e) {
+    console.error('OCR handler crash:', e);
+    return res.status(500).json({ error: 'OCR crash: ' + (e?.message || String(e)) });
+  }
+}
+
+async function ocrHandler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { image, mediaType = 'image/jpeg', model } = req.body;
+  const { image, mediaType = 'image/jpeg', model } = req.body || {};
   if (!image) return res.status(400).json({ error: 'No image' });
 
   const apiKey = process.env.GEMINI_API_KEY;

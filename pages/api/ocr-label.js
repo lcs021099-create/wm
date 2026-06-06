@@ -46,7 +46,6 @@ Rules:
       responseSchema: {
         type: 'object',
         properties: {
-          customer: { type: 'string' },
           commission_no: { type: 'string' },
           pallet_no: { type: 'string' },
           caliper: { type: 'string' },

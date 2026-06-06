@@ -860,8 +860,8 @@ export default function Home() {
             </div>
             <div className="panel">
               <h3>標籤資料</h3>
-              {[['板號', palletDetail.pallet_no], ['訂單編號', palletDetail.commission_no], ['批次碼', palletDetail.batch_code], ['尺寸', palletDetail.format_size], ['厚度', palletDetail.caliper ? palletDetail.caliper + ' mm' : ''], ['重量', palletDetail.weight ? palletDetail.weight + ' kg' : ''], ['張數', palletDetail.sheets ? palletDetail.sheets + ' pcs' : ''], ['供應商', palletDetail.supplier], ['客戶', palletDetail.customer], ['生產日期', palletDetail.production_date], ['出貨日期', palletDetail.shipment_date], ['產地', palletDetail.origin], ['位置', palletDetail.location], ['條碼', palletDetail.barcode]].filter(([,v]) => v).map(([k,v]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '0.5px solid #f1f3f5', fontSize: 13 }}><span style={{ color: '#999' }}>{k}</span><span style={{ fontWeight: 500 }}>{v}</span></div>
+              {[['板號', palletDetail.pallet_no], ['訂單編號', palletDetail.commission_no], ['批次碼', palletDetail.batch_code], ['尺寸', palletDetail.format_size], ['厚度', palletDetail.caliper ? palletDetail.caliper + ' mm' : ''], ['重量', palletDetail.weight ? palletDetail.weight + ' kg' : ''], ['張數', palletDetail.sheets ? palletDetail.sheets + ' pcs' : ''], ['供應商', palletDetail.supplier], ['生產日期', palletDetail.production_date], ['出貨日期', palletDetail.shipment_date], ['產地', palletDetail.origin], ['位置', palletDetail.location], ['條碼', palletDetail.barcode]].filter(([,v]) => v).map(([k,v]) => (
+                <div key={k} style={{ display: 'flex', gap: 16, padding: '6px 0', borderBottom: '0.5px solid #f1f3f5', fontSize: 13 }}><span style={{ color: '#999', minWidth: 72, flexShrink: 0 }}>{k}</span><span style={{ fontWeight: 500 }}>{v}</span></div>
               ))}
             </div>
             {palletDetail.status === 'in_stock' && (

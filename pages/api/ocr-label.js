@@ -76,10 +76,7 @@ Rules:
 
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
-    return res.status(500).json({
-      error: `Gemini error ${resp.status}: ${err?.error?.message || resp.statusText}`,
-      _debug: { model: useModel, imageType: typeof image, isArray: Array.isArray(image), imageLen: (image == null ? null : image.length), imageHead: String(image).slice(0, 24) },
-    });
+    return res.status(500).json({ error: `Gemini error ${resp.status}: ${err?.error?.message || resp.statusText}` });
   }
 
   const data = await resp.json();

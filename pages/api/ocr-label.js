@@ -20,7 +20,8 @@ async function ocrHandler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
 
-  const useModel = model || 'gemini-flash-latest';
+  // 用固定版本 gemini-2.5-flash：實測比 -latest 別名快很多（後者常被導到壅塞容量）
+  const useModel = model || 'gemini-2.5-flash';
   const body = JSON.stringify({
     contents: [{
       parts: [
